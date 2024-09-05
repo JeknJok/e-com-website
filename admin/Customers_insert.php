@@ -49,13 +49,13 @@ if(isset($_POST["submit"])){
 <div class="container">
   <h2>Register Now!</h2>
   <text class="text-muted">Register now Or <a href='../index.php#login'>Login Here</a> and start shopping in the most affordable e-commerce platform
-    known to mankind!
+    known to mankind! (Please dont use personal Information. This is only a portfolio website.)
   </text>
   <form action="Customers_insert.php" method="post">
     <div class="form-group">
       <div class="form-floating mb-3">
         <input type="text" name="CustomerName" class="form-control" id="floatingInput" placeholder="Full Name">
-        <label for="floatingInput">Full Name</label>
+        <label for="floatingInput">Full Name (Remember - DO NOT use sensitive personal info)</label>
       </div>
       <div class="form-floating mb-3">
         <input type="text" name="ContactName" class="form-control" id="floatingInput" placeholder="Username">
@@ -63,23 +63,23 @@ if(isset($_POST["submit"])){
       </div>
       <div class="form-floating mb-3">
         <input type="text" name="CAddress" class="form-control" id="floatingInput" placeholder="Address">
-        <label for="floatingInput">Address</label>
+        <label for="floatingInput">Address (Remember - DO NOT use sensitive personal info)</label>
       </div>
       <div class="form-floating mb-3">
         <input type="text" name="CEmail" class="form-control" id="floatingInput" placeholder="example@mail.com">
-        <label for="floatingInput">example@email.com</label>
+        <label for="floatingInput">example@email.com (you can use nonexistent e-mail here)</label>
       </div>
       <div class="form-floating mb-3">
         <input type="text" name="Country" class="form-control" id="floatingInput" placeholder="Country">
-        <label for="floatingInput">Country</label>
+        <label for="floatingInput">Country (Remember - DO NOT use sensitive personal info) </label>
       </div>
       <div class="form-floating mb-3">
         <input type="text" name="City" class="form-control" id="floatingInput" placeholder="City">
-        <label for="floatingInput">City</label>
+        <label for="floatingInput">City (Remember - DO NOT use sensitive personal info)</label>
       </div>
       <div class="form-floating mb-3">
         <input type="text" name="PostalCode" class="form-control" id="floatingInput" placeholder="PostalCode">
-        <label for="floatingInput">Postal Code </label>
+        <label for="floatingInput">Postal Code (Remember - DO NOT use sensitive personal info)</label>
       </div>
       <div class="form-floating mb-3">
         <input type="text" name="CPassword" class="form-control" id="floatingInput" placeholder="CPassword">
