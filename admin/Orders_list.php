@@ -1,35 +1,7 @@
 <?php
-    include "navbar_admin.php";
-    include "connection.php";
-
-    $sql = "SELECT * FROM Orders";
-$result = $conn->query($sql);
-
-if ($result->num_rows > 0) {
-  echo "<table class='table table-hover'><tr><th>OrderID</th><th>OrderDate</th><th>Ordered By Customer ID</th><th>OrderStatus</th><th>Check Paid</th><th>Uncheck Paid</th>";
-  while($row = $result->fetch_assoc()) {
-      $id = $row['OrderID'];
-      $orderDate = $row['OrderDate'];
-      $customerID = $row['CustomerID'];
-      $orderStatus = $row['OrderStatus'];
-      $update = "<a href ='check_paid.php?OrderID=$id'>Check Paid</a>" ;
-      $delete = "<a href ='uncheck_paid.php?OrderID=$id'>Uncheck Paid</a>" ;
-      $details= "<a href ='OrderDetails_list.php?OrderID=$id'>Details</a>" ;
-
-    echo "<tr><td>$id</td><td>$orderDate</td><td>$customerID</td><td>$orderStatus</td><td>$update</td><td>$delete</td></tr>";
-  }
-  echo "</table>";
-
-} else {
-  echo "0 results";
-}
-$conn->close();
-?>
-    <div class="col-sm-2">
-
-    </div>
-  </div>
-</div>
-
-</body>
-</html>
+require_once dirname(__DIR__) . '/app/bootstrap.php';
+require_admin();
+expire_orders();
+page_start('Orders', 'admin');
+render_orders(list_orders(), true);
+?><p class="invoice-note">Payment status is recorded manually. A paid invoice can be reopened only when the customer has no other open invoice.</p><?php page_end();

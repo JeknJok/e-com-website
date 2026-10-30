@@ -1,24 +1,7 @@
 <?php
-  session_start();
-  if (!isset($_SESSION["CustomerID"])){
-    header("location:index.php");
-  }
-  //tendang keluar klo blm ad SESSION
-?>
-
-<?php
-    include "connection.php";
-
-    $OrderID = $_GET["OrderID"];
-
-    $sql = "UPDATE Orders 
-    SET OrderStatus = 'PAID' WHERE OrderID = $OrderID ";
-
-    if ($conn->query($sql) === TRUE) {
-        header('location:Orders_list.php');
-      } else {
-        echo " " . $conn->error;
-      }
-
-    
-?>
+require_once dirname(__DIR__) . '/app/bootstrap.php';
+require_admin();
+require_post();
+change_payment_status(positive_int(input('OrderID')), true);
+flash('Order marked paid.');
+redirect(url('admin/Orders_list.php'));

@@ -1,46 +1,11 @@
 <?php
-include "navbar_admin.php";
-include "connection.php";
-
-$sql = "SELECT * FROM Products";
-$result = $conn->query($sql);
-
-if ($result->num_rows > 0) {
-  echo "<table class='table table-hover'><tr><th>Product Code</th><th>Category</th><th>Product Image</th><th>Product Name</th><th>Product Desc.</th><th>Price per unit</th><th>Update</th><th>Delete</th><th>Upload</th></tr>";
-  while($row = $result->fetch_assoc()) {
-      $id = $row['pcode'];
-      $pcategory=$row['pcategory'];
-      $update = "<a href ='products_update.php?pcode=$id'>Update</a>" ;
-      $delete = "<a href ='products_delete.php?pcode=$id'>Delete</a>" ;
-      $productname = $row['pname'];
-      $pdesc = $row['pdesc'];
-      $pprice = $row['pprice'];
-      $image = $row['pimage'];
-      $pimage = "<img src = '$image' width = '50px' height= '50px'>";
-    echo "<tr><td>$id</td><td>$pcategory</td><td>$pimage</td><td>$productname</td><td>$pdesc</td><td>$pprice</td><td>$update</td><td>$delete</td>
-    <td><form action='../assets/upload.php' method='post' enctype='multipart/form-data'>
-    Choose file: <input type='file' name='berkas' />
-    <input type='submit' name='upload' value='upload'/>
-    <input type='hidden' name='id' value='$id' />
-    </form> </td></tr>";
-  }
-  echo "</table>";
-  echo
-  "<form class='d-flex' action='products_insert.php'>
-  <button class='btn btn-info' type='submit'>Insert New Product</button>
-  </form>";
-
-} else {
-  echo "0 results";
-}
-$conn->close();
-?>
-
-    <div class="col-sm-2">
-
-    </div>
-  </div>
-</div>
-
-</body>
-</html>
+require_once dirname(__DIR__) . '/app/bootstrap.php';
+require_admin();
+$search = mb_substr(trim(input('search', $_GET)), 0, 100);
+$escaped = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search);
+$products = rows("SELECT * FROM Products WHERE pname LIKE ? ESCAPE '!' ORDER BY pcode", ['%' . $escaped . '%']);
+page_start('Products', 'admin');
+?><div class="d-flex flex-wrap gap-3 mb-3"><a class="btn btn-primary" href="<?= e(url('admin/products_insert.php')) ?>">Add product</a><form class="d-flex gap-2" method="get"><label class="visually-hidden" for="productSearch">Search products</label><input class="form-control" id="productSearch" name="search" value="<?= e($search) ?>" placeholder="Search products" maxlength="100"><button class="btn btn-secondary" type="submit">Search</button></form></div>
+<div class="table-wrap" role="region" aria-label="Products" tabindex="0"><table class="table table-hover"><thead><tr><th>Code</th><th>Image</th><th>Product</th><th>Category</th><th class="order-total">Price</th><th>Availability</th><th>Actions</th><th>Upload image</th></tr></thead><tbody>
+<?php foreach ($products as $product): ?><tr><td><?= e($product['pcode']) ?></td><td><img class="product-thumbnail" src="<?= e(image_url($product['pimage'])) ?>" alt="<?= e($product['pname']) ?>"></td><td><?= e($product['pname']) ?></td><td><?= e($product['pcategory']) ?></td><td class="order-total"><?= e(money($product['pprice'])) ?></td><td><?= $product['is_active'] ? 'Available' : 'Archived' ?></td><td><a class="btn btn-sm btn-secondary" href="<?= e(url('admin/products_update.php', ['pcode' => $product['pcode']])) ?>">Edit</a><?php if ($product['is_active']): ?> <a class="btn btn-sm btn-outline-danger" href="<?= e(url('admin/products_delete.php', ['pcode' => $product['pcode']])) ?>">Archive</a><?php endif ?></td><td><form method="post" enctype="multipart/form-data" action="<?= e(url('assets/upload.php')) ?>"><?= csrf_field() ?><input type="hidden" name="id" value="<?= e($product['pcode']) ?>"><label class="visually-hidden" for="upload-<?= e($product['pcode']) ?>">Image for <?= e($product['pname']) ?></label><input class="form-control form-control-sm" type="file" id="upload-<?= e($product['pcode']) ?>" name="berkas" accept="image/jpeg,image/png,image/webp" required><button class="btn btn-sm btn-secondary mt-1" type="submit">Upload</button></form></td></tr><?php endforeach ?>
+</tbody></table></div><p class="text-muted">Images: JPEG, PNG, or WebP, up to 2 MB and 20 megapixels. Deleting a product archives it and preserves existing order details.</p><?php if (!$products): ?><p>No products found.</p><?php endif; page_end();

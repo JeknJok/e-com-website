@@ -1,0 +1,7 @@
+{
+  "name": "mae-ecommerce-prototype",
+  "private": true,
+  "scripts": {
+    "dev": "php -S 0.0.0.0:${PORT:-3000} -t . scripts/dev-router.php"
+  }
+}

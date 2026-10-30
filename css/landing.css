@@ -1,0 +1,66 @@
+/* MAE's original Agency layout, sharing Bootstrap 5.3 with the storefront. */
+.mae-landing { font-family: 'Roboto Slab', serif; }
+.mae-landing h1, .mae-landing h2, .mae-landing h3, .mae-landing .btn, .mae-landing nav { font-family: 'Montserrat', sans-serif; }
+.mae-landing section { scroll-margin-top: 5.5rem; }
+#mainNav { padding-block: .9rem; background: #212529; }
+#mainNav .navbar-brand { color: white; }
+#mainNav .nav-link { font-size: .8rem; font-weight: 500; letter-spacing: .06em; color: white; padding: .75rem 1rem; }
+#mainNav .nav-link:hover, #mainNav .nav-link.active { color: #ffc800; }
+#mainNav .navbar-toggler { min-height: 44px; }
+header.masthead { padding: 11rem 0 7rem; min-height: 650px; display: flex; align-items: center; text-align: center; color: white; background: linear-gradient(#0003, #0006), url('../assets/img/newheader-bg.jpg') center 48% / cover no-repeat; }
+.masthead-subheading { margin: 0 0 1.5rem; font-size: clamp(1.1rem, 2.5vw, 2rem); font-style: italic; }
+.masthead-heading { max-width: 18ch; margin: 0 auto 2.5rem; font-size: clamp(2.6rem, 5.8vw, 4.7rem); line-height: 1.1; font-weight: 700; color: white; letter-spacing: -.025em; }
+.btn-xl { padding: 1.1rem 1.8rem; font-size: .9rem; }
+.page-section { padding: clamp(4rem, 7vw, 6rem) 0; }
+.section-intro { margin-bottom: 3rem; }
+.section-heading { font-size: clamp(1.7rem, 3vw, 2.4rem); font-weight: 700; letter-spacing: -.025em; margin-bottom: 1rem; }
+.section-subheading { color: #59616a; margin: 0 auto 3rem; max-width: 48rem; font-size: .98rem; line-height: 1.8; font-style: italic; }
+.section-intro .section-subheading { margin-bottom: 0; }
+.portfolio-item { max-width: 26rem; height: 100%; margin-inline: auto; background: white; border: 1px solid #e2e4e5; }
+.portfolio-link { position: relative; display: block; aspect-ratio: 4 / 3; background: white; }
+.portfolio-link img { width: 100%; height: 100%; object-fit: contain; }
+.portfolio-hover { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; background: #ffc800e6; transition: opacity .2s ease; color: #212529; font: 700 .9rem 'Montserrat', sans-serif; text-transform: uppercase; letter-spacing: .06em; }
+.portfolio-link:hover .portfolio-hover, .portfolio-link:focus-visible .portfolio-hover { opacity: 1; }
+.portfolio-caption { padding: 1.5rem; text-align: center; border-top: 1px solid #eceeee; }
+.portfolio-caption-heading { font-size: 1.1rem; font-weight: 700; line-height: 1.5; text-transform: none; margin-bottom: .35rem; overflow-wrap: anywhere; }
+.portfolio-caption-subheading { color: #59616a; font-size: .8rem; font-style: italic; margin-bottom: .6rem; }
+.highlight-price { font: 600 .95rem 'Montserrat', sans-serif; margin: 0; }
+.team-member { max-width: 32rem; margin-inline: auto; }
+.team-mark { display: block; margin: 0 auto 1.5rem; width: 160px; height: auto; }
+.team-member h3 { font-size: 1.25rem; font-weight: 700; text-transform: none; line-height: 1.5; }
+.team-member .text-muted { font-size: .9rem; }
+.team-note { margin: 2rem 0 0; color: #59616a; font-size: .9rem; }
+.login-layout { display: grid; grid-template-columns: 1fr 1fr; max-width: 64rem; gap: 2rem; margin-inline: auto; }
+.login-panel { padding: clamp(1.25rem, 3vw, 2.5rem); border: 1px solid #dce0e3; border-top: 3px solid #ffc800; background: white; font-family: 'Montserrat', sans-serif; }
+.login-panel h3 { font-size: 1.2rem; font-weight: 700; text-transform: none; }
+.login-panel p { font-size: .85rem; }
+.login-panel .btn { width: 100%; }
+.admin-login { border-top-color: #343a40; }
+.register-link { margin: 1.5rem 0 0; }
+.signed-in-note { margin: 0 auto 2rem; max-width: 64rem; text-align: center; }
+.footer { padding-block: 2rem; font-family: 'Montserrat', sans-serif; font-size: .8rem; }
+.footer-content { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.5rem; }
+.footer p { margin: .25rem 0 0; color: #59616a; }
+.footer span, .footer a { display: block; }
+.footer a { margin-top: .25rem; }
+.portfolio-modal .modal-content { border-radius: .2rem; border: 0; }
+.portfolio-modal .btn-close { position: absolute; top: 1rem; right: 1rem; z-index: 1; width: 24px; height: 24px; padding: .65rem; }
+.portfolio-modal .modal-body { padding: 3.5rem clamp(1.25rem, 4vw, 3rem) 2.5rem; text-align: center; }
+.portfolio-modal h2 { font-size: clamp(1.5rem, 3vw, 2.1rem); text-transform: none; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.preview-image { display: block; width: 100%; max-height: 26rem; height: auto; object-fit: contain; margin: 1.5rem auto; }
+.preview-description { text-align: left; font-size: .95rem; overflow-wrap: anywhere; }
+.preview-price { font: 700 1.3rem 'Montserrat', sans-serif; margin-bottom: 1.5rem; }
+@media (min-width: 992px) {
+  #mainNav { padding-block: 1.5rem; background: #212529c9; transition: padding .2s ease; }
+  #mainNav.navbar-shrink { padding-block: .8rem; background: #212529; }
+}
+@media (max-width: 767px) { .login-layout { grid-template-columns: 1fr; } }
+@media (max-width: 575px) {
+  header.masthead { min-height: 620px; padding: 10rem 0 5rem; }
+  .masthead-heading { font-size: clamp(2.3rem, 10vw, 3.5rem); }
+  .masthead-subheading { font-size: 1.1rem; }
+  .mae-landing .container { padding-inline: 1.25rem; }
+  .section-subheading { font-size: .9rem; }
+  .portfolio-item { max-width: none; }
+  .btn-xl { padding-inline: 1.1rem; font-size: .8rem; }
+}

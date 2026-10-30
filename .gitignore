@@ -1,0 +1,4 @@
+/config.local.php
+/.env
+/assets/uploads/product_*
+/tests/.runtime/

@@ -1,24 +1,8 @@
 <?php
-include "connection.php";
-
-// sql to delete a record
-if (isset($_GET["OrderID"])){
-    $id=$_GET['OrderID'];
-    $sql = "DELETE FROM Orders WHERE OrderID=$id";
-
-    if ($conn->query($sql) === TRUE) {
-      $sql = "DELETE FROM OrderDetails WHERE OrderID=$id";
-
-      header("location: Customers_orders.php");
-    } else {
-      echo "Error deleting record: " . $conn->error;
-    }
-
-    $conn->close();
-
-}
-else{
-  echo "invalid ID";
-}
-
-?>
+require_once dirname(__DIR__) . '/app/bootstrap.php';
+$admin = current_admin();
+$customer = $admin ? null : require_customer();
+require_post();
+cancel_order(positive_int(input('OrderID')), $admin ? null : (int)$customer['CustomerID']);
+flash('Order cancelled. Its details remain available in order history.');
+redirect(url($admin ? 'admin/Orders_list.php' : 'admin/Customers_orders.php'));

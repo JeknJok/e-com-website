@@ -1,35 +1,9 @@
-    <?php
-    include "connection.php";
-    include "navbar_admin.php";
-
-    $sql = "SELECT * FROM users_tb";
-$result = $conn->query($sql);
-
-if ($result->num_rows > 0) {
-  echo "<table class='table table-hover'><tr><th>No</th><th>First Name</th><th>Last name</th><th>E-mail address</th><th>Update</th><th>Delete</th></tr>";
-  while($row = $result->fetch_assoc()) {
-      $id = $row['id'];
-      $update = "<a href ='user_update.php?id=$id'>Update</a>" ;
-      $delete = "<a href ='user_delete.php?id=$id'>Delete</a>" ;
-      $firstname = $row['firstname'];
-      $lastname = $row['lastname'];
-      $email = $row['email'];
-    echo "<tr><td>$id</td><td>$firstname</td><td>$lastname</td><td>$email</td><td>$update</td><td>$delete</td></tr>";
-  }
-  echo "</table>";
-  echo "<a href ='user_insert.php'>Insert New Data</a> <br>";
-
-} else {
-  echo "0 results";
-}
-$conn->close();
-?>
-
-    <div class="col-sm-2">
-
-    </div>
-  </div>
-</div>
-
-</body>
-</html>
+<?php
+require_once dirname(__DIR__) . '/app/bootstrap.php';
+require_admin();
+$admins = rows('SELECT id, firstname, lastname, email, username, mobile FROM users_tb ORDER BY id');
+page_start('Administrators', 'admin');
+?><a class="btn btn-primary mb-3" href="<?= e(url('admin/user_insert.php')) ?>">Create administrator</a>
+<div class="table-wrap" role="region" aria-label="Administrators" tabindex="0"><table class="table table-hover"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Username</th><th>Actions</th></tr></thead><tbody>
+<?php foreach ($admins as $admin): ?><tr><td><?= e($admin['id']) ?></td><td><?= e($admin['firstname'] . ' ' . $admin['lastname']) ?></td><td><?= e($admin['email']) ?></td><td><?= e($admin['username']) ?></td><td><a class="btn btn-sm btn-secondary" href="<?= e(url('admin/user_update.php', ['id' => $admin['id']])) ?>">Edit</a> <a class="btn btn-sm btn-outline-danger" href="<?= e(url('admin/user_delete.php', ['id' => $admin['id']])) ?>">Delete</a></td></tr><?php endforeach ?>
+</tbody></table></div><?php page_end();

@@ -1,51 +1,15 @@
 <?php
-  session_start();
-  if (!isset($_SESSION["CustomerID"])){
-    header("location:index.php");
-  }
-  //tendang keluar klo blm ad SESSION
-?>
-
-<?php
-include "navbar_customer.php";
-include "connection.php";
-$OrderID=$_GET['OrderID'];
-$sql = "SELECT * FROM OrderDetails WHERE OrderID = $OrderID";
-$result = $conn->query($sql);
-$total = 0;
-$totalqty = 0;
-
-if ($result->num_rows > 0) {
-  echo "<table class='table table-primary'><tr><th>Product Code</th><th>Name</th><th>Price</th><th>Quantity</th>";
-  while($row = $result->fetch_assoc()) {
-      $pcode = $row['pcode'];
-      $pprice = $row['pprice'];
-      $qty = $row['qty'];
-      $pname = $row['pname'];
-      $total = $total + $pprice*$qty;
-      $totalqty =  $totalqty +$qty; 
-      
-
-    echo "<tr class='table table-secondary'><td>$pcode</td><td>$pname</td><td>Rp.".number_format($pprice).".00-</td><td>$qty</td></tr>";
-
-  }
-  echo "<tr class='table-dark'><td>Total:</td><td><text class='text-muted'><text></td><td>Rp.".number_format($total).".00-</td><td>$totalqty <text class='text-muted'>Items<text></td></tr>";
-  echo "</table>";
-
-} else {
-  echo "0 results";
-}
-$conn->close();
-?>
-
-    <div class="col-sm-2">
-
-    </div>
-  </div>
-</div>
-<div class="alert alert-dismissible alert-info">
-      <h4 class="alert-heading">Info</h4>
-        Orders that aren't paid within 24 Hours will be auto-magically cancelled.
-      </div>
-</body>
-</html>
+require_once dirname(__DIR__) . '/app/bootstrap.php';
+$admin = current_admin();
+$customer = $admin ? null : require_customer();
+$id = positive_int(input('OrderID', $_GET));
+$order = accessible_order($id, $admin ? null : (int)$customer['CustomerID']);
+expire_orders((int)$order['CustomerID']);
+$order = accessible_order($id, $admin ? null : (int)$customer['CustomerID']);
+$items = rows('SELECT pcode, pname, pprice, qty FROM OrderDetails WHERE OrderID = ? ORDER BY OrderDetailsID', [$id]);
+page_start('Order #' . $id, $admin ? 'admin' : 'customer');
+?><div class="order-meta"><?= order_status($order['OrderStatus']) ?><span>Ordered at <?= e($order['OrderDate']) ?> UTC</span></div>
+<?php if ($order['OrderStatus'] === 'INVOICE'): ?><p>Payment window ends <?= e($order['InvoiceExpiresAt']) ?> UTC. Unpaid invoices are cancelled after 24 hours.</p><a class="btn btn-primary mb-3" href="<?= e(url($admin ? 'admin/catalog_admin.php' : 'admin/catalog.php', $admin ? ['cid' => $order['CustomerID'], 'oid' => $id] : ['oid' => $id])) ?>">Continue shopping</a><?php endif ?>
+<div class="table-wrap" role="region" aria-label="Order items" tabindex="0"><table class="table table-hover"><thead><tr><th scope="col">Product code</th><th scope="col">Name</th><th scope="col" class="order-total">Unit price</th><th scope="col">Quantity</th><th scope="col" class="order-total">Subtotal</th></tr></thead><tbody>
+<?php $total = $quantity = 0; foreach ($items as $item): $subtotal = (int)$item['pprice'] * (int)$item['qty']; $total += $subtotal; $quantity += (int)$item['qty']; ?><tr><td><?= e($item['pcode']) ?></td><td><?= e($item['pname']) ?></td><td class="order-total"><?= e(money($item['pprice'])) ?></td><td><?= e($item['qty']) ?></td><td class="order-total"><?= e(money($subtotal)) ?></td></tr><?php endforeach ?>
+</tbody><tfoot><tr><th colspan="3" scope="row">Total</th><td><?= e($quantity) ?> items</td><td class="order-total"><strong><?= e(money($total)) ?></strong></td></tr></tfoot></table></div><?php if ($order['OrderStatus'] === 'INVOICE'): action_form('Customers_cancelOrder.php', ['OrderID' => $id], 'Cancel order', 'outline-danger'); endif; page_end();

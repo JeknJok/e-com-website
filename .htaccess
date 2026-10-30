@@ -1,0 +1,7 @@
+Options -Indexes
+RewriteEngine On
+RewriteRule ^(?:app|database|scripts|tests|\.git)(?:/|$) - [F,L,NC]
+RewriteRule ^admin/shop_admin\.php$ admin/Shop_admin.php [L]
+<FilesMatch "^(?:config\.|\.)">
+    Require all denied
+</FilesMatch>

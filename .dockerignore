@@ -1,0 +1,5 @@
+.git
+.env
+config.local.php
+tests/.runtime
+**/__pycache__

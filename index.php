@@ -1,551 +1,155 @@
 <?php
-session_start();
-include "admin/connection.php";
-?>
-
-<?php
-$msg_customer = " ";
-if(isset($_POST["submit_customer"])){
-    
-    $email = $_POST['email'];
-    $password = $_POST['pass'];
-
-    $sql = "SELECT * FROM Customers WHERE CEmail='$email' AND CPassword='$password'; ";
-    $result = $conn->query($sql);
-    if ($result->num_rows > 0) {
-        if($row = $result->fetch_assoc()) {
-          $_SESSION["CustomerID"] = $row["CustomerID"];
-          $_SESSION["ContactName"] = $row["ContactName"];
-          //header("location:admin/catalog.php?filterby=0");
-          echo'<script> 			window.location.replace("admin/catalog.php?filterby=0"); 		</script>';
-
-          
-        } else {
-            $msg_customer = '<div class="alert alert-dismissible alert-danger">
-            <strong>Oh snap!</strong> Invalid E-mail / Password. Change some things up and try submitting again.
-          </div>
-          ';
-        }
+require_once __DIR__ . '/app/bootstrap.php';
+$msg_customer = $msg_admin = '';
+$loginEmail = '';
+$loginKind = 'customer';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_post();
+    $loginKind = isset($_POST['submit_admin']) ? 'admin' : 'customer';
+    $loginEmail = input('email');
+    if (login_account($loginKind, $loginEmail, input('pass'))) {
+        redirect(url($loginKind === 'admin' ? 'admin/dashboard.php' : 'admin/catalog.php'));
     }
-    else{
-        $msg_customer = '<div class="alert alert-dismissible alert-danger">
-        <strong>Oh snap!</strong> Invalid E-mail / Password. Change some things up and try submitting again.
-      </div>';
-    }
+    $message = '<div class="alert alert-danger" role="alert">Invalid email or password.</div>';
+    if ($loginKind === 'admin') { $msg_admin = $message; } else { $msg_customer = $message; }
 }
-
-$msg_admin = " ";
-if(isset($_POST["submit_admin"])){
-    
-    $email = $_POST['email'];
-    $password = $_POST['pass'];
-
-    $sql = "SELECT * FROM users_tb WHERE email='$email' AND pass='$password'; ";
-    $result = $conn->query($sql);
-    if ($result->num_rows > 0) {
-        if($row = $result->fetch_assoc()) {
-            header("location:admin/user_list.php");
-        } else {
-            $msg_admin = '<div class="alert alert-dismissible alert-danger">
-            <strong>Oh snap!</strong> Invalid E-mail / Password. Change some things up and try submitting again.
-          </div>';
-        }
-    }
-    else{
-        $msg_admin = '<div class="alert alert-dismissible alert-danger">
-        <strong>Oh snap!</strong> Invalid E-mail / Password. Change some things up and try submitting again.
-      </div>';
-    }
-}
-$conn->close();
+$admin = current_admin();
+$customer = $admin ? null : current_customer();
+$shopHref = $customer ? url('admin/catalog.php') : url('index.php') . '#login';
+$products = rows('SELECT pcode, pname, pcategory, pprice, pimage, pdesc FROM Products WHERE is_active = 1 ORDER BY pcode LIMIT 6');
 ?>
-
+<!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="" />
-        <meta name="author" content="" />
-        <title>M-A-E-Commerce</title>
-        <!-- Favicon-->
-        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
-        <!-- Font Awesome icons (free version)-->
-        <script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js" crossorigin="anonymous"></script>
-        <!-- Google fonts-->
-        <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
-        <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
-        <!-- Core theme CSS (includes Bootstrap)-->
-        <link href="css/styles.css" rel="stylesheet" />
-    </head>
-    <body id="page-top">
-        <!-- Navigation-->
-        <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
-            <div class="container">
-                <a class="navbar-brand" href="#page-top"><img src="assets/img/logo-mae.png" alt="..." /></a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-                    Menu
-                    <i class="fas fa-bars ms-1"></i>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarResponsive">
-                    <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
-                        <li class="nav-item"><a class="nav-link" href="#portfolio">Highlights</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#team">Team</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#login">Login</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
-                        
-                    </ul>
-                </div>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="M-A-E-Commerce: collectible finds and the most affordable items known to mankind. A personal ecommerce project by Nealle Benedict Adisaputro.">
+    <title>M-A-E-Commerce · Most Known to Mankind!</title>
+    <?php theme_head(); ?>
+    <link rel="stylesheet" href="<?= e(url('css/landing.css')) ?>">
+    <script defer src="<?= e(url('js/scripts.js')) ?>"></script>
+</head>
+<body class="mae-landing" id="page-top">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav" aria-label="Main navigation">
+        <div class="container">
+            <a class="navbar-brand mae-brand" href="#page-top"><img src="<?= e(url('assets/img/logo-mae.png')) ?>" width="44" height="42" alt=""><span>M-A-E-Commerce</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav text-uppercase ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#portfolio">Highlights</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#team">Team</a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?= e($admin ? url('admin/dashboard.php') : ($customer ? url('admin/catalog.php') : '#login')) ?>"><?= $admin ? 'Dashboard' : ($customer ? 'Shop' : 'Login') ?></a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                </ul>
             </div>
-        </nav>
-        <!-- Masthead-->
+        </div>
+    </nav>
+    <main id="main-content" tabindex="-1">
         <header class="masthead">
             <div class="container">
-                <div class="masthead-subheading">Welcome To M-A-E-Commerce!</div>
-                <div class="masthead-heading text-uppercase">Most Known to Mankind!</div>
-                <a class="btn btn-primary btn-xl text-uppercase" href="#services">Tell Me More, Mankind!</a>
+                <p class="masthead-subheading">Welcome To M-A-E-Commerce!</p>
+                <h1 class="masthead-heading text-uppercase">Most Known to Mankind!</h1>
+                <a class="btn btn-primary btn-xl text-uppercase" href="#portfolio">Tell Me More, Mankind!</a>
             </div>
         </header>
-        
-        <!-- Portfolio Grid-->
-        <section class="page-section bg-light" id="portfolio">
+        <section class="page-section bg-light" id="portfolio" aria-labelledby="highlights-heading">
             <div class="container">
-                <div class="text-center">
-                    <h2 class="section-heading text-uppercase">Catalog Highlights</h2>
-                    <h3 class="section-subheading text-muted">Featuring the Most Affordable Items known to Mankind!</h3>
+                <div class="text-center section-intro">
+                    <h2 class="section-heading text-uppercase" id="highlights-heading">Catalog Highlights</h2>
+                    <p class="section-subheading">Featuring the most affordable items known to mankind!</p>
                 </div>
-                <div class="row">
-                    <div class="col-lg-4 col-sm-6 mb-4">
-                        <!-- Portfolio item 1-->
-                        <div class="portfolio-item">
-                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal1">
-                                <div class="portfolio-hover">
-                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
-                                </div>
-                                <img class="img-fluid" src="assets/img/portfolio/mimikyu.jpg" alt="..." />
-                            </a>
-                            <div class="portfolio-caption">
-                                <div class="portfolio-caption-heading">Pokemon PlayMo Mimikyu</div>
-                                <div class="portfolio-caption-subheading text-muted">Toys</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-sm-6 mb-4">
-                        <!-- Portfolio item 2-->
-                        <div class="portfolio-item">
-                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal2">
-                                <div class="portfolio-hover">
-                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
-                                </div>
-                                <img class="img-fluid" src="assets/img/portfolio/rayquaza.jpg" alt="..." />
-                            </a>
-                            <div class="portfolio-caption">
-                                <div class="portfolio-caption-heading">Pokemon PlaMo Rayquaza</div>
-                                <div class="portfolio-caption-subheading text-muted">Toys</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-sm-6 mb-4">
-                        <!-- Portfolio item 3-->
-                        <div class="portfolio-item">
-                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal3">
-                                <div class="portfolio-hover">
-                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
-                                </div>
-                                <img class="img-fluid" src="assets/img/portfolio/mew.jpg" alt="..." />
-                            </a>
-                            <div class="portfolio-caption">
-                                <div class="portfolio-caption-heading">Pokemon PlaMo Mew</div>
-                                <div class="portfolio-caption-subheading text-muted">Toys</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-sm-6 mb-4 mb-lg-0">
-                        <!-- Portfolio item 4-->
-                        <div class="portfolio-item">
-                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal4">
-                                <div class="portfolio-hover">
-                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
-                                </div>
-                                <img class="img-fluid" src="assets/img/portfolio/eevee.jpg" alt="..." />
-                            </a>
-                            <div class="portfolio-caption">
-                                <div class="portfolio-caption-heading">Pokemon PlaMo Eevee</div>
-                                <div class="portfolio-caption-subheading text-muted">Toys</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-sm-6 mb-4 mb-sm-0">
-                        <!-- Portfolio item 5-->
-                        <div class="portfolio-item">
-                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal5">
-                                <div class="portfolio-hover">
-                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
-                                </div>
-                                <img class="img-fluid" src="assets/img/portfolio/pikachu.jpg" alt="..." />
-                            </a>
-                            <div class="portfolio-caption">
-                                <div class="portfolio-caption-heading">Pokemon PlaMo Pikachu</div>
-                                <div class="portfolio-caption-subheading text-muted">Toys</div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="row g-4">
+                    <?php foreach ($products as $product): ?>
                     <div class="col-lg-4 col-sm-6">
-                        <!-- Portfolio item 6-->
-                        <div class="portfolio-item">
-                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal6">
-                                <div class="portfolio-hover">
-                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
-                                </div>
-                                <img class="img-fluid" src="assets/img/portfolio/6.jpg" alt="..." />
+                        <article class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#product-preview-<?= e($product['pcode']) ?>" aria-label="Preview <?= e($product['pname']) ?>">
+                                <img class="img-fluid" src="<?= e(image_url($product['pimage'])) ?>" data-fallback="<?= e(url('assets/img/logo-mae.png')) ?>" width="600" height="450" loading="lazy" alt="<?= e($product['pname']) ?>">
+                                <span class="portfolio-hover" aria-hidden="true"><span>View item</span></span>
                             </a>
                             <div class="portfolio-caption">
-                                <div class="portfolio-caption-heading">Window</div>
-                                <div class="portfolio-caption-subheading text-muted">Photography</div>
+                                <h3 class="portfolio-caption-heading"><?= e($product['pname']) ?></h3>
+                                <p class="portfolio-caption-subheading"><?= e($product['pcategory']) ?></p>
+                                <p class="highlight-price"><?= e(money($product['pprice'])) ?></p>
                             </div>
-                        </div>
+                        </article>
+                    </div>
+                    <?php endforeach ?>
+                </div>
+                <?php if (!$products): ?><p class="text-center">New finds are on their way. Check back for our next catalog highlights.</p><?php endif ?>
+                <div class="text-center mt-5"><a class="btn btn-primary" href="<?= e($shopHref) ?>"><?= $customer ? 'Explore the catalog' : 'Log in to explore the catalog' ?></a></div>
+            </div>
+        </section>
+        <section class="page-section" id="team" aria-labelledby="team-heading">
+            <div class="container text-center">
+                <h2 class="section-heading text-uppercase" id="team-heading">The Team</h2>
+                <p class="section-subheading">The builder of the most affordable ecommerce platform known to mankind.</p>
+                <div class="team-member">
+                    <img class="team-mark" src="<?= e(url('assets/img/logo-mae.png')) ?>" width="160" height="152" loading="lazy" alt="M-A-E logo">
+                    <h3>Nealle Benedict Adisaputro</h3>
+                    <p class="text-muted">Full Stack Web Developer</p>
+                    <a class="btn btn-outline-dark" href="https://www.linkedin.com/in/nealle-benedict-adisaputro-a549681b7/">LinkedIn</a>
+                </div>
+                <p class="team-note">A personal project, built with a little personality.</p>
+            </div>
+        </section>
+        <section class="page-section bg-light" id="login" aria-labelledby="login-heading">
+            <div class="container">
+                <div class="text-center section-intro">
+                    <h2 class="section-heading text-uppercase" id="login-heading">Login</h2>
+                    <p class="section-subheading">Log in or <a href="<?= e(url('admin/Customers_insert.php')) ?>">register now</a> and start shopping.</p>
+                </div>
+                <?php if ($customer || $admin): ?>
+                <div class="signed-in-note"><p>You are already signed in.</p><a class="btn btn-primary" href="<?= e(url($admin ? 'admin/dashboard.php' : 'admin/catalog.php')) ?>"><?= $admin ? 'Go to dashboard' : 'Continue shopping' ?></a></div>
+                <?php endif ?>
+                <div class="login-layout">
+                    <div class="login-panel">
+                        <h3>Customer login</h3>
+                        <p class="text-muted">Your next find is waiting.</p>
+                        <form action="<?= e(url('index.php')) ?>#login" method="post">
+                            <?= csrf_field() ?>
+                            <div class="mb-3"><label class="form-label" for="customer-email">Email</label><input type="email" class="form-control" id="customer-email" name="email" value="<?= e($loginKind === 'customer' ? $loginEmail : '') ?>" autocomplete="username" maxlength="254" required></div>
+                            <div class="mb-4"><label class="form-label" for="customer-password">Password</label><input type="password" class="form-control" id="customer-password" name="pass" autocomplete="current-password" maxlength="72" required></div>
+                            <?= $msg_customer ?>
+                            <button type="submit" name="submit_customer" class="btn btn-primary">Log in</button>
+                        </form>
+                        <p class="register-link">New to MAE? <a href="<?= e(url('admin/Customers_insert.php')) ?>">Create an account</a></p>
+                    </div>
+                    <div class="login-panel admin-login">
+                        <h3>You're an admin?</h3>
+                        <p class="text-muted">Log in to manage products, customers, and orders.</p>
+                        <form action="<?= e(url('index.php')) ?>#login" method="post">
+                            <?= csrf_field() ?>
+                            <div class="mb-3"><label class="form-label" for="admin-email">Email</label><input type="email" class="form-control" id="admin-email" name="email" value="<?= e($loginKind === 'admin' ? $loginEmail : '') ?>" autocomplete="username" maxlength="254" required></div>
+                            <div class="mb-4"><label class="form-label" for="admin-password">Password</label><input type="password" class="form-control" id="admin-password" name="pass" autocomplete="current-password" maxlength="72" required></div>
+                            <?= $msg_admin ?>
+                            <button type="submit" name="submit_admin" class="btn btn-secondary">Admin login</button>
+                        </form>
                     </div>
                 </div>
             </div>
         </section>
-                <!-- Team-->
-        <section class="page-section bg-light" id="team">
-            <div class="container">
-                <div class="text-center">
-                    <h2 class="section-heading text-uppercase">The team</h2>
-                    <h3 class="section-subheading text-muted">The builder(s) of The Most Affordable E-commerce platform known to mankind.</h3>
-                </div>
-                <div class="row">
-                    <div class="col-lg-4">
-                        <div class="team-member">
-                        </div>
-                    </div>
-                    <div class="col-lg-4">
-                        <div class="team-member">
-                            <img class="mx-auto rounded-circle"  />
-                            <h4>Nealle Benedict Adisaputro</h4>
-                            <p class="text-muted">Full Stack Web Developer</p>
-                            <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-twitter"></i></a>
-                            <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-facebook-f"></i></a>
-                            <a class="btn btn-dark btn-social mx-2" href="https://www.linkedin.com/in/nealle-benedict-adisaputro-a549681b7/!"><i class="fab fa-linkedin-in"></i></a>
-                        </div>
-                    </div>
-                    <div class="col-lg-4">
-                        <div class="team-member">
-                            
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-lg-8 mx-auto text-center"><p class="large text-muted">This is a personal website. Well, you should expect.</p></div>
-                </div>
-            </div>
-        </section>
-        <!--Login-->
-        <section class="page-section" id="login">
-            <div class="container">
-                <div class="text-center">
-                    <h2 class="section-heading text-uppercase">Login</h2>
-                    <h3 class="section-subheading text-muted">Login Or <a href='admin/Customers_insert.php'>Register Now</a> and start shopping in the most affordable e-commerce platform
-                        known to mankind!</h3>
-                </div>
-                <!-- * * * * * * * * * * * * * * *-->
-                <!-- * * SB Forms Contact Form * *-->
-                <!-- * * * * * * * * * * * * * * *-->
-                <!-- This form is pre-integrated with SB Forms.-->
-                <!-- To make this form functional, sign up at-->
-                <!-- https://startbootstrap.com/solution/contact-forms-->
-                <!-- to get an API token!-->
-                <div class="row align-items-stretch mb-5">
-                <div class="col-md-2"></div>
-                <div class="col-md-8">
-                    <form action="index.php#login" method="post" class="">
-                      <div class="form-group">
-                        <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="floatingInput" placeholder="Enter Email" name="email">
-                            <label for="floatingInput">example@email.com</label>
-                        </div>
-                      <div class="form-group">
-                        <div class="form-floating mb-3">
-                            <input type="password" class="form-control" id="floatingInput" placeholder="Password Here" name="pass">
-                            <label for="floatingInput">Password</label>
-                        </div>
-
-                      </div>
-                        <?php
-                            echo $msg_customer ;
-                        ?>
-                      <div class="text-center"><button type="submit" name="submit_customer" class="btn btn-primary btn-xl text-uppercase">LOGIN</button></div>
-                    </form>
-                </div>
-                
-                <div class="col-md-2"></div>
-                </div>
-                <div class="row align-items-stretch mb-5">
-                <div class="col-md-2"></div>
-                <div class="col-md-8">
-                    <div class="text-center">
-                        <p><br></p>
-                        <h2 class="section-heading text-uppercase">You're An Admin?</h2>
-                        <h3 class="section-subheading text-muted">Enter your credentials and start Administering the most affordable e-commerce platform
-                            known to mankind!</h3>
-                    </div>
-                    <form action="index.php#login" method="post">
-                      <div class="form-floating mb-3">
-                        <input type="email" class="form-control" id="floatingInput" placeholder="Enter Email" name="email">
-                        <label for="floatingInput">example@email.com</label>
-                      </div>
-                      <div class="form-floating mb-3">
-                        <input type="password" class="form-control" id="floatingInput" placeholder="Password Here" name="pass">
-                        <label for="floatingInput">Password</label>
-                      </div>                    
-                        <?php
-                        echo $msg_admin ;
-                        ?>
-                      <div class="text-center"><button type="submit" name="submit_admin" class="btn btn-primary btn-xl text-uppercase">LOGIN</button></div>
-                    </form>
-
-                </div>
-                <div class="col-md-2"></div>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Footer-->
-        <footer class="footer py-4">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-lg-4 text-lg-start">Copyright &copy; MAE Ecommerce 2021</div>
-                    <div class="col-lg-4 my-3 my-lg-0">
-                        <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-twitter"></i></a>
-                        <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-facebook-f"></i></a>
-                        <a class="btn btn-dark btn-social mx-2" href="#!"><i class="fab fa-linkedin-in"></i></a>
-                    </div>
-                    <div class="col-lg-4 text-lg-end">
-                        <a class="link-dark text-decoration-none me-3" href="#!">Privacy Policy</a>
-                        <a class="link-dark text-decoration-none" href="#!">Terms of Use</a>
-                    </div>
-                </div>
-            </div>
-        </footer>
-        <!-- Portfolio Modals-->
-        <!-- Portfolio item 1 modal popup-->
-        <div class="portfolio-modal modal fade" id="portfolioModal1" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="close-modal" data-bs-dismiss="modal"><img src="assets/img/close-icon.svg" alt="Close modal" /></div>
-                    <div class="container">
-                        <div class="row justify-content-center">
-                            <div class="col-lg-8">
-                                <div class="modal-body">
-                                    <!-- Project details-->
-                                    <h2 class="text-uppercase">mimikyu</h2>
-                                    <p class="item-intro text-muted">The Mimic Pokemon comes to MAE.</p>
-                                    <img class="img-fluid d-block mx-auto" src="assets/img/portfolio/mimikyu.jpg" alt="..." />
-                                    <p>A fan favorite to some degree, both due to its cuteness and its prowess in battle. Now it can be built by your own hands and be put anywhere in your room where it might be entertaining unsuspecting victims!</p>
-                                    <ul class="list-inline">
-                                        <li>
-                                            <strong>Price</strong>
-                                            Rp.120,000.-
-                                        </li>
-                                        <li>
-                                            <strong>Category:</strong>
-                                            TOYS
-                                        </li>
-                                    </ul>
-                                    <button class="btn btn-primary btn-xl text-uppercase" data-bs-dismiss="modal" type="button">
-                                        <i class="fas fa-times me-1"></i>
-                                        Close Preview
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    </main>
+    <footer class="footer" id="contact">
+        <div class="container footer-content">
+            <div><strong>M-A-E-Commerce</strong><p>Copyright &copy; MAE Ecommerce <?= e(date('Y')) ?></p></div>
+            <div><span>Get in touch with the builder</span><a href="https://www.linkedin.com/in/nealle-benedict-adisaputro-a549681b7/">Nealle on LinkedIn</a></div>
         </div>
-        <!-- Portfolio item 2 modal popup-->
-        <div class="portfolio-modal modal fade" id="portfolioModal2" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="close-modal" data-bs-dismiss="modal"><img src="assets/img/close-icon.svg" alt="Close modal" /></div>
-                    <div class="container">
-                        <div class="row justify-content-center">
-                            <div class="col-lg-8">
-                                <div class="modal-body">
-                                    <!-- Project details-->
-                                    <h2 class="text-uppercase">Rayquaza</h2>
-                                    <p class="item-intro text-muted">Liven up the skies in your room with the Sky High Pokemon!</p>
-                                    <img class="img-fluid d-block mx-auto" src="assets/img/portfolio/rayquaza.jpg" alt="..." />
-                                    <p>A fan favorite amongst all other legendaries, Rayquaza combines elegance and display of strength to add to your collection!</p>
-                                    <ul class="list-inline">
-                                        <li>
-                                            <strong>Price:</strong>
-                                            Rp.250,000.-
-                                        </li>
-                                        <li>
-                                            <strong>Category:</strong>
-                                            Toys
-                                        </li>
-                                    </ul>
-                                    <button class="btn btn-primary btn-xl text-uppercase" data-bs-dismiss="modal" type="button">
-                                        <i class="fas fa-times me-1"></i>
-                                        Close Preview
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    </footer>
+    <?php foreach ($products as $product): ?>
+    <div class="portfolio-modal modal fade" id="product-preview-<?= e($product['pcode']) ?>" tabindex="-1" aria-labelledby="product-heading-<?= e($product['pcode']) ?>" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content">
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close preview"></button>
+            <div class="modal-body">
+                <p class="product-category"><?= e($product['pcategory']) ?></p>
+                <h2 id="product-heading-<?= e($product['pcode']) ?>"><?= e($product['pname']) ?></h2>
+                <img class="preview-image" src="<?= e(image_url($product['pimage'])) ?>" data-fallback="<?= e(url('assets/img/logo-mae.png')) ?>" width="600" height="450" loading="lazy" alt="<?= e($product['pname']) ?>">
+                <p class="preview-description"><?= nl2br(e($product['pdesc'])) ?></p>
+                <p class="preview-price"><?= e(money($product['pprice'])) ?></p>
+                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close preview</button>
             </div>
-        </div>
-        <!-- Portfolio item 3 modal popup-->
-        <div class="portfolio-modal modal fade" id="portfolioModal3" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="close-modal" data-bs-dismiss="modal"><img src="assets/img/close-icon.svg" alt="Close modal" /></div>
-                    <div class="container">
-                        <div class="row justify-content-center">
-                            <div class="col-lg-8">
-                                <div class="modal-body">
-                                    <!-- Project details-->
-                                    <h2 class="text-uppercase">MEW</h2>
-                                    <p class="item-intro text-muted">A Pokemon that has trace of every other Pokemon's DNA in theirs.</p>
-                                    <img class="img-fluid d-block mx-auto" src="assets/img/portfolio/mew.jpg" alt="..." />
-                                    <p>The cuteness of Mew will improve any kind of collection!</p>
-                                    <ul class="list-inline">
-                                        <li>
-                                            <strong>Price:</strong>
-                                            Rp.150,000,-
-                                        </li>
-                                        <li>
-                                            <strong>Category:</strong>
-                                            Toys
-                                        </li>
-                                    </ul>
-                                    <button class="btn btn-primary btn-xl text-uppercase" data-bs-dismiss="modal" type="button">
-                                        <i class="fas fa-times me-1"></i>
-                                        Close Preview
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Portfolio item 4 modal popup-->
-        <div class="portfolio-modal modal fade" id="portfolioModal4" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="close-modal" data-bs-dismiss="modal"><img src="assets/img/close-icon.svg" alt="Close modal" /></div>
-                    <div class="container">
-                        <div class="row justify-content-center">
-                            <div class="col-lg-8">
-                                <div class="modal-body">
-                                    <!-- Project details-->
-                                    <h2 class="text-uppercase">EEVEE</h2>
-                                    <p class="item-intro text-muted">The sleeping Eevee will make anyone that sees it goes aww.</p>
-                                    <img class="img-fluid d-block mx-auto" src="assets/img/portfolio/eevee.jpg" alt="..." />
-                                    <p>Pokemon Play Model Eevee in sleeping position. Put it somewhere in your room or your house, and it sures add cuteness to it.</p>
-                                    <ul class="list-inline">
-                                        <li>
-                                            <strong>Price:</strong>
-                                            Rp.140,000.-
-                                        </li>
-                                        <li>
-                                            <strong>Category:</strong>
-                                            Toys
-                                        </li>
-                                    </ul>
-                                    <button class="btn btn-primary btn-xl text-uppercase" data-bs-dismiss="modal" type="button">
-                                        <i class="fas fa-times me-1"></i>
-                                        Close Preview
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Portfolio item 5 modal popup-->
-        <div class="portfolio-modal modal fade" id="portfolioModal5" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="close-modal" data-bs-dismiss="modal"><img src="assets/img/close-icon.svg" alt="Close modal" /></div>
-                    <div class="container">
-                        <div class="row justify-content-center">
-                            <div class="col-lg-8">
-                                <div class="modal-body">
-                                    <!-- Project details-->
-                                    <h2 class="text-uppercase">Pikachu</h2>
-                                    <p class="item-intro text-muted">Who don't know Pikachu?</p>
-                                    <img class="img-fluid d-block mx-auto" src="assets/img/portfolio/pikachu.jpg" alt="..." />
-                                    <p>Let's be honest here -  no Pokemon PlaMo collection is complete without the official Pokemon mascot Pikachu!</p>
-                                    <ul class="list-inline">
-                                        <li>
-                                            <strong>Price:</strong>
-                                            Rp.150,000.-
-                                        </li>
-                                        <li>
-                                            <strong>Category:</strong>
-                                            Toys
-                                        </li>
-                                    </ul>
-                                    <button class="btn btn-primary btn-xl text-uppercase" data-bs-dismiss="modal" type="button">
-                                        <i class="fas fa-times me-1"></i>
-                                        Close Preview
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Portfolio item 6 modal popup-->
-        <div class="portfolio-modal modal fade" id="portfolioModal6" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="close-modal" data-bs-dismiss="modal"><img src="assets/img/close-icon.svg" alt="Close modal" /></div>
-                    <div class="container">
-                        <div class="row justify-content-center">
-                            <div class="col-lg-8">
-                                <div class="modal-body">
-                                    <!-- Project details-->
-                                    <h2 class="text-uppercase">Project Name</h2>
-                                    <p class="item-intro text-muted">Lorem ipsum dolor sit amet consectetur.</p>
-                                    <img class="img-fluid d-block mx-auto" src="assets/img/portfolio/6.jpg" alt="..." />
-                                    <p>Use this area to describe your project. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Est blanditiis dolorem culpa incidunt minus dignissimos deserunt repellat aperiam quasi sunt officia expedita beatae cupiditate, maiores repudiandae, nostrum, reiciendis facere nemo!</p>
-                                    <ul class="list-inline">
-                                        <li>
-                                            <strong>Client:</strong>
-                                            Window
-                                        </li>
-                                        <li>
-                                            <strong>Category:</strong>
-                                            Photography
-                                        </li>
-                                    </ul>
-                                    <button class="btn btn-primary btn-xl text-uppercase" data-bs-dismiss="modal" type="button">
-                                        <i class="fas fa-times me-1"></i>
-                                        Close Project
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Bootstrap core JS-->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-        <!-- Core theme JS-->
-        <script src="js/scripts.js"></script>
-        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
-        <!-- * *                               SB Forms JS                               * *-->
-        <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
-        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
-        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
-    </body>
+        </div></div>
+    </div>
+    <?php endforeach ?>
+</body>
 </html>
