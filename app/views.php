@@ -28,7 +28,7 @@ function page_start(string $title, string $role = 'public', array $context = [])
 <?php if ($role !== 'public'): ?><form class="logout-form" method="post" action="<?= e(url('admin/logout.php')) ?>"><?= csrf_field() ?><button class="btn btn-outline-light" type="submit">Logout</button></form><?php endif ?>
 </div></div></nav><main id="main-content" class="app-container app-main" tabindex="-1">
 <?php if (isset($_SESSION['flash'])): ?><div class="alert alert-success" role="status"><?= e($_SESSION['flash']) ?></div><?php unset($_SESSION['flash']); endif ?>
-<h1 class="page-title"><?= e($title) ?></h1>
+<div class="page-heading"><h1 class="page-title"><?= e($title) ?></h1><?php currency_selector(); ?></div>
 <?php
 }
 
@@ -40,9 +40,21 @@ function theme_head(): void
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
 <link rel="stylesheet" href="<?= e(url('css/app.css')) ?>">
+<meta name="mae-exchange-rates" content="<?= e(url('api/exchange-rates.php')) ?>">
 <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script defer src="<?= e(url('js/app.js')) ?>"></script>
+<script defer src="<?= e(url('js/currency.js')) ?>"></script>
 <?php
+}
+
+function currency_selector(): void
+{
+    ?><div class="currency-tools">
+<div class="currency-control"><label for="display-currency">Display currency</label><select class="form-select" id="display-currency" data-currency-select aria-describedby="currency-status" disabled>
+<?php foreach (ExchangeRates::CURRENCIES as $code => $name): ?><option value="<?= e($code) ?>"><?= e($code . ' · ' . $name) ?></option><?php endforeach ?>
+</select></div><p id="currency-status" data-currency-status role="status" aria-live="polite">Prices shown in IDR.</p><a class="currency-source" data-currency-source href="https://frankfurter.dev/" target="_blank" rel="noopener noreferrer" hidden>Rates: Frankfurter</a>
+<noscript><p>Currency conversion requires JavaScript. Prices are shown in IDR.</p></noscript>
+</div><?php
 }
 
 function page_end(): void
@@ -100,7 +112,7 @@ function render_orders(array $orders, bool $asAdmin = false): void
         return;
     }
     ?><div class="table-wrap" role="region" aria-label="Orders" tabindex="0"><table class="table table-hover"><thead><tr><th scope="col">Order</th><th scope="col">Ordered at (UTC)</th><?php if ($asAdmin): ?><th scope="col">Customer</th><?php endif ?><th scope="col">Status</th><th scope="col">Payment deadline (UTC)</th><th scope="col" class="order-total">Total</th><th scope="col">Actions</th></tr></thead><tbody>
-<?php foreach ($orders as $order): ?><tr><th scope="row">#<?= e($order['OrderID']) ?></th><td><?= e($order['OrderDate']) ?></td><?php if ($asAdmin): ?><td><?= e($order['ContactName']) ?> (#<?= e($order['CustomerID']) ?>)</td><?php endif ?><td><?= order_status($order['OrderStatus']) ?></td><td><?= $order['OrderStatus'] === 'INVOICE' ? e($order['InvoiceExpiresAt']) : '—' ?></td><td class="order-total"><?= e(money($order['total'])) ?></td><td><a class="btn btn-sm btn-secondary" href="<?= e(url('admin/OrderDetails_list.php', ['OrderID' => $order['OrderID']])) ?>">Details</a>
+<?php foreach ($orders as $order): ?><tr><th scope="row">#<?= e($order['OrderID']) ?></th><td><?= e($order['OrderDate']) ?></td><?php if ($asAdmin): ?><td><?= e($order['ContactName']) ?> (#<?= e($order['CustomerID']) ?>)</td><?php endif ?><td><?= order_status($order['OrderStatus']) ?></td><td><?= $order['OrderStatus'] === 'INVOICE' ? e($order['InvoiceExpiresAt']) : '—' ?></td><td class="order-total"><?= price_html($order['total']) ?></td><td><a class="btn btn-sm btn-secondary" href="<?= e(url('admin/OrderDetails_list.php', ['OrderID' => $order['OrderID']])) ?>">Details</a>
 <?php if ($order['OrderStatus'] === 'INVOICE'): if ($asAdmin): action_form('check_paid.php', ['OrderID' => $order['OrderID']], 'Mark paid', 'success'); endif; action_form('Customers_cancelOrder.php', ['OrderID' => $order['OrderID']], 'Cancel order', 'outline-danger'); elseif ($asAdmin && $order['OrderStatus'] === 'PAID'): action_form('uncheck_paid.php', ['OrderID' => $order['OrderID']], 'Reopen invoice'); endif ?>
 </td></tr><?php endforeach ?></tbody></table></div><?php
 }

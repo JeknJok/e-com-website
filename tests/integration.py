@@ -14,6 +14,7 @@ from pathlib import Path
 import re
 import secrets
 import signal
+import shutil
 import socket
 import subprocess
 import time
@@ -28,6 +29,9 @@ ENV = os.environ.copy()
 ENV['DB_NAME'] = 'mae_test_' + secrets.token_hex(6)
 ENV['APP_BASE_PATH'] = ''
 ENV['COOKIE_SECURE'] = '0'
+FX_DIRECTORY = ROOT / 'tests/.runtime' / ('fx_' + secrets.token_hex(6))
+FX_DIRECTORY.mkdir(parents=True, exist_ok=True)
+ENV['FX_CACHE_DIR'] = str(FX_DIRECTORY)
 DATABASES = []
 UPLOADS = []
 CHECKS = 0
@@ -133,6 +137,7 @@ class Document(HTMLParser):
         self.ids = []
         self.links = []
         self.inputs = []
+        self.prices = []
         self.feed(body)
 
     def handle_starttag(self, tag, attrs):
@@ -143,6 +148,25 @@ class Document(HTMLParser):
             self.links.append(attrs['href'])
         if tag == 'input':
             self.inputs.append(attrs)
+        if 'data-money-idr' in attrs:
+            self.prices.append(int(attrs['data-money-idr']))
+
+
+def seed_rates(rows, fetched_at=None, fail=False):
+    """Populate an isolated cache through the production service and an injected provider."""
+    code = r'''
+require 'app/currency.php';
+$v=json_decode(stream_get_contents(STDIN),true,512,JSON_THROW_ON_ERROR);
+$clock=$v['now'];
+$fetch=function() use($v): string { if ($v['fail']) { throw new RuntimeException('Test provider unavailable'); } return json_encode($v['rows'],JSON_THROW_ON_ERROR); };
+try { echo json_encode((new ExchangeRates(null,$fetch,fn()=>$clock))->latest(),JSON_THROW_ON_ERROR); }
+catch (RuntimeException $e) { echo json_encode(['unavailable'=>true]); }
+'''
+    response = subprocess.run([PHP, '-r', code], cwd=ROOT, env=ENV,
+                              input=json.dumps({'rows': rows, 'now': fetched_at or int(time.time()), 'fail': fail}),
+                              capture_output=True, text=True)
+    check(response.returncode == 0, 'Exchange-rate fixture seeds through the production cache service: ' + response.stderr)
+    return json.loads(response.stdout)
 
 
 @contextlib.contextmanager
@@ -198,6 +222,37 @@ def run_http(base, admin_email, admin_password):
     check('id="contact"' in body and 'href="#services"' not in body, 'Landing-page anchors exist')
     cookie = headers.get('Set-Cookie', '')
     check('HttpOnly' in cookie and 'SameSite=Lax' in cookie, 'Session cookies are protected')
+    check('data-currency-select' in body and all(f'value="{code}"' in body for code in ['IDR', 'USD', 'EUR', 'GBP', 'CAD', 'JPY']),
+          'Landing page offers exactly the supported currency choices')
+    check(Document(body).prices and all(value > 0 for value in Document(body).prices),
+          'Public prices retain exact original IDR amounts for conversion')
+    for filename in FX_DIRECTORY.glob('rates.json*'):
+        filename.unlink()
+    date = time.strftime('%Y-%m-%d', time.gmtime())
+    rate_rows = [{'base': 'IDR', 'quote': code, 'rate': rate, 'date': date}
+                 for code, rate in [('USD', .00006), ('EUR', .000055), ('GBP', .000048), ('CAD', .000083), ('JPY', .009)]]
+    seed_rates(rate_rows)
+    code, rates_body, rate_headers = public.get('api/exchange-rates.php')
+    rates = json.loads(rates_body)
+    check(code == 200 and rates['base'] == 'IDR' and set(rates['rates']) == {'IDR', 'USD', 'EUR', 'GBP', 'CAD', 'JPY'},
+          'Public currency endpoint returns all six IDR-based rates')
+    check('application/json' in rate_headers.get('Content-Type', '') and rate_headers.get('Set-Cookie') is None,
+          'Rate endpoint has JSON content and creates no session cookie')
+    check(not rates['stale'] and rates['dates']['CAD'] == date, 'Public rate response exposes its publication date and freshness')
+    check(json.loads(public.get('api/exchange-rates.php?base=USD&url=http://example.test')[1])['base'] == 'IDR',
+          'Query parameters cannot alter the fixed rate provider or base currency')
+    status, _, headers = public.post('api/exchange-rates.php')
+    check(status == 405 and headers.get('Allow') == 'GET', 'Exchange rates accept only GET requests')
+    (FX_DIRECTORY / 'rates.json').unlink()
+    old_time = int(time.time()) - 7200
+    old_rows = [dict(row, date=time.strftime('%Y-%m-%d', time.gmtime(old_time))) for row in rate_rows]
+    seed_rates(old_rows, old_time)
+    seed_rates(rate_rows, fail=True)
+    check(json.loads(public.get('api/exchange-rates.php')[1])['stale'], 'API outage serves marked saved rates with the original date')
+    (FX_DIRECTORY / 'rates.json').unlink()
+    seed_rates(rate_rows, fail=True)
+    code, error_body, _ = public.get('api/exchange-rates.php')
+    check(code == 503 and 'Prices remain in IDR' in json.loads(error_body)['error'], 'Cold outage returns a safe IDR fallback message')
     legacy_upload = ROOT / ('assets/uploads/product_legacy_' + secrets.token_hex(6) + '.php')
     UPLOADS.append(legacy_upload)
     legacy_upload.write_text('<?php echo "legacy-upload-executed";')
@@ -256,6 +311,9 @@ def run_http(base, admin_email, admin_password):
     check(response[0] == 303, 'Product can be added to cart')
     oid = int(sql('SELECT OrderID FROM Orders WHERE CustomerID = ?', [aid])[0]['OrderID'])
     item = sql('SELECT * FROM OrderDetails WHERE OrderID = ?', [oid])[0]
+    check(int(product['pprice']) in Document(alice.get('admin/catalog.php')[1]).prices and
+          2 * int(product['pprice']) in Document(alice.get(f'admin/OrderDetails_list.php?OrderID={oid}')[1]).prices,
+          'Catalog, order subtotals, and totals carry immutable IDR values for conversion')
     check(int(item['pprice']) == int(product['pprice']) and item['pname'] == product['pname'] and int(item['qty']) == 2,
           'Order uses server-side product name and price')
     for path in ['admin/catalog.php?filterby=2', 'admin/catalog.php?search=Mimikyu', 'admin/catalog.php?category=TOYS&search=Mimikyu']:
@@ -535,6 +593,9 @@ def main():
         admin = Client(base)
         admin.login(admin_email, admin_password, admin=True)
         check('/mae/admin/products_list.php' in admin.get('admin/dashboard.php')[1], 'Subdirectory navigation preserves base path')
+        body = admin.get('admin/dashboard.php')[1]
+        check('content="/mae/api/exchange-rates.php"' in body and 'src="/mae/js/currency.js"' in body,
+              'Currency assets and endpoint respect subdirectory installations')
     run_migration()
     print(f'PASS: {CHECKS} assertions covering syntax, HTTP flows, permissions, orders, uploads, concurrency, and legacy migration.')
 
@@ -543,6 +604,7 @@ if __name__ == '__main__':
     try:
         main()
     finally:
+        shutil.rmtree(FX_DIRECTORY, ignore_errors=True)
         for path in UPLOADS:
             path.unlink(missing_ok=True)
         for name in reversed(DATABASES):

@@ -59,6 +59,7 @@ $products = rows('SELECT pcode, pname, pcategory, pprice, pimage, pdesc FROM Pro
                     <h2 class="section-heading text-uppercase" id="highlights-heading">Catalog Highlights</h2>
                     <p class="section-subheading">Featuring the most affordable items known to mankind!</p>
                 </div>
+                <div class="landing-currency"><?php currency_selector(); ?></div>
                 <div class="row g-4">
                     <?php foreach ($products as $product): ?>
                     <div class="col-lg-4 col-sm-6">
@@ -70,7 +71,7 @@ $products = rows('SELECT pcode, pname, pcategory, pprice, pimage, pdesc FROM Pro
                             <div class="portfolio-caption">
                                 <h3 class="portfolio-caption-heading"><?= e($product['pname']) ?></h3>
                                 <p class="portfolio-caption-subheading"><?= e($product['pcategory']) ?></p>
-                                <p class="highlight-price"><?= e(money($product['pprice'])) ?></p>
+                                <p class="highlight-price"><?= price_html($product['pprice']) ?></p>
                             </div>
                         </article>
                     </div>
@@ -145,7 +146,7 @@ $products = rows('SELECT pcode, pname, pcategory, pprice, pimage, pdesc FROM Pro
                 <h2 id="product-heading-<?= e($product['pcode']) ?>"><?= e($product['pname']) ?></h2>
                 <img class="preview-image" src="<?= e(image_url($product['pimage'])) ?>" data-fallback="<?= e(url('assets/img/logo-mae.png')) ?>" width="600" height="450" loading="lazy" alt="<?= e($product['pname']) ?>">
                 <p class="preview-description"><?= nl2br(e($product['pdesc'])) ?></p>
-                <p class="preview-price"><?= e(money($product['pprice'])) ?></p>
+                <p class="preview-price"><?= price_html($product['pprice']) ?></p>
                 <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close preview</button>
             </div>
         </div></div>

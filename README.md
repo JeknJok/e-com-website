@@ -96,3 +96,24 @@ GitHub Actions runs the same suite with MariaDB on pushes and pull requests.
 All pages use compatible, pinned Bootstrap/Bootswatch 5.3.3 assets. The catalog uses a responsive grid, complete product images, visible filter context, and an open-invoice summary. Product previews, forms, order tables, and management pages share the MAE visual treatment.
 
 For manual verification, check the landing page, catalog, profile, active orders/history, and admin management pages at 320px, 390px, 768px, and desktop widths. Confirm that mobile navigation exposes search, descriptions and preview dialogs work with a keyboard, and wide management tables scroll within their own container. Use the HTTP/database suite for actual form submissions and permissions; rendered page snapshots validate layout only.
+
+## Display currency
+
+The display-currency selector supports **IDR, USD, EUR, GBP, CAD, and JPY**. It appears above shared app pages and beside the landing-page highlights. The selected currency is remembered in the browser and synchronized between tabs.
+
+Reference rates come from [Frankfurter v2](https://frankfurter.dev/). The feed publishes daily observations; this is an instantly updating price display using the latest published reference rates, not a tick-by-tick trading feed. Each conversion is marked as approximate and shows the relevant publication date. JPY and IDR use whole units; USD, EUR, GBP, and CAD use two decimals.
+
+Product prices, price-entry fields, historical order prices, and server-side totals remain **whole IDR**. Changing the display currency never modifies an order or submits a converted price. Every conversion starts from its original IDR value, including when switching currencies repeatedly. Without JavaScript or usable rates, prices remain in rupiah.
+
+`api/exchange-rates.php` retrieves a fixed set of IDR-based rates server-side, without API keys or customer data. It caches validated responses for one hour and the browser rechecks every 15 minutes while the page is visible. During a provider outage, recent saved rates are explicitly marked; quotes older than seven days are refused. A cold outage leaves the original IDR prices visible. Invalid rates are never applied.
+
+PHP must have HTTPS stream support (OpenSSL and `allow_url_fopen`) and outbound HTTPS access to `api.frankfurter.dev`. The Docker image already includes HTTPS support. The cache uses PHP's temporary directory by default; an optional `FX_CACHE_DIR` process environment variable can select an existing, writable private directory. No database migration is needed for currency conversion. After pulling updates in Docker, rebuild with `docker compose up --build -d`.
+
+Currency-specific checks run without an external API dependency:
+
+```sh
+php tests/currency.php
+node --test tests/currency.test.cjs
+```
+
+Node is needed only for the JavaScript tests, not to serve the PHP application. The HTTP suite also checks the rates endpoint, outage behavior, exact IDR price metadata, and subdirectory URLs.

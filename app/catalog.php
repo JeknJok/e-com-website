@@ -28,7 +28,7 @@ function catalog_page(bool $asAdmin = false): void
 <?php if ($asAdmin): ?><p class="shop-as-notice">You are placing orders for <strong><?= e($customer['ContactName']) ?></strong>. <a href="<?= e(url('admin/Shop_admin.php')) ?>">Choose another customer</a></p><?php endif ?>
 <?php if ($order): $summary = row('SELECT COALESCE(SUM(qty), 0) AS items, COALESCE(SUM(pprice * qty), 0) AS total FROM OrderDetails WHERE OrderID = ?', [$order['OrderID']]); ?>
 <aside class="cart-summary" aria-label="Current order">
-<div><strong>Open invoice #<?= e($order['OrderID']) ?></strong><span><?= e($summary['items']) ?> <?= (int)$summary['items'] === 1 ? 'item' : 'items' ?> · <?= e(money($summary['total'])) ?></span><small>Payment window ends <?= e($order['InvoiceExpiresAt']) ?> UTC.</small></div>
+<div><strong>Open invoice #<?= e($order['OrderID']) ?></strong><span><?= e($summary['items']) ?> <?= (int)$summary['items'] === 1 ? 'item' : 'items' ?> · <?= price_html($summary['total']) ?></span><small>Payment window ends <?= e($order['InvoiceExpiresAt']) ?> UTC.</small></div>
 <a class="btn btn-primary" href="<?= e(url('admin/OrderDetails_list.php', ['OrderID' => $order['OrderID']])) ?>">View order</a>
 </aside>
 <?php else: ?><p class="invoice-note">Adding your first item opens an invoice. Unpaid invoices expire after 24 hours.</p><?php endif ?>
@@ -52,7 +52,7 @@ function catalog_page(bool $asAdmin = false): void
 <?php foreach ($products as $product): ?><article class="product-card">
 <div class="product-visual"><img class="catalog-image" src="<?= e(image_url($product['pimage'])) ?>" data-fallback="<?= e(url('assets/img/logo-mae.png')) ?>" alt="<?= e($product['pname']) ?>" width="600" height="450" loading="lazy"></div>
 <div class="product-body"><p class="product-category"><?= e($product['pcategory']) ?></p><h2 class="product-title"><?= e($product['pname']) ?></h2>
-<p class="product-price"><?= e(money($product['pprice'])) ?> <span>per item</span></p>
+<p class="product-price"><?= price_html($product['pprice']) ?> <span>per item</span></p>
 <details class="product-description"><summary>Product description</summary><p><?= nl2br(e($product['pdesc'])) ?></p></details>
 <form class="purchase-form" method="post" action="<?= e(url($asAdmin ? 'admin/addToOrders_admin.php' : 'admin/addToOrders.php')) ?>">
 <?= csrf_field() ?><input type="hidden" name="pcode" value="<?= e($product['pcode']) ?>"><input type="hidden" name="oid" value="<?= e($order['OrderID'] ?? '') ?>">

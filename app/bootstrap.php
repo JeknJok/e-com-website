@@ -277,6 +277,12 @@ function money(mixed $value): string
     return 'Rp. ' . number_format((int)$value, 0, ',', '.');
 }
 
+function price_html(mixed $value): string
+{
+    $amount = (int)$value;
+    return '<span class="money" data-money-idr="' . e($amount) . '">' . e(money($amount)) . '</span>';
+}
+
 function image_url(string $image): string
 {
     if (filter_var($image, FILTER_VALIDATE_URL) && in_array(strtolower((string)parse_url($image, PHP_URL_SCHEME)), ['http', 'https'], true)) {
@@ -290,4 +296,5 @@ function image_url(string $image): string
 }
 
 require_once __DIR__ . '/orders.php';
+require_once __DIR__ . '/currency.php';
 require_once __DIR__ . '/views.php';

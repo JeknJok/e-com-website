@@ -29,3 +29,7 @@ jobs:
           DB_USER: root
           DB_PASSWORD: local-test-only-password
         run: python3 tests/integration.py
+      - name: Run currency service and conversion tests
+        run: |
+          php tests/currency.php
+          node --test tests/currency.test.cjs
