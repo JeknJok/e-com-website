@@ -51,8 +51,8 @@ function currency_selector(): void
 {
     ?><div class="currency-tools">
 <div class="currency-control"><label for="display-currency">Display currency</label><select class="form-select" id="display-currency" data-currency-select aria-describedby="currency-status" disabled>
-<?php foreach (ExchangeRates::CURRENCIES as $code => $name): ?><option value="<?= e($code) ?>"><?= e($code . ' · ' . $name) ?></option><?php endforeach ?>
-</select></div><p id="currency-status" data-currency-status role="status" aria-live="polite">Prices shown in IDR.</p><a class="currency-source" data-currency-source href="https://frankfurter.dev/" target="_blank" rel="noopener noreferrer" hidden>Rates: Frankfurter</a>
+<?php foreach (ExchangeRates::CURRENCIES as $code => $name): ?><option value="<?= e($code) ?>"<?= $code === 'USD' ? ' selected' : '' ?>><?= e($code . ' · ' . $name) ?></option><?php endforeach ?>
+</select></div><p id="currency-status" data-currency-status role="status" aria-live="polite">Prices shown in IDR until exchange rates load.</p><a class="currency-source" data-currency-source href="https://frankfurter.dev/" target="_blank" rel="noopener noreferrer" hidden>Rates: Frankfurter</a>
 <noscript><p>Currency conversion requires JavaScript. Prices are shown in IDR.</p></noscript>
 </div><?php
 }

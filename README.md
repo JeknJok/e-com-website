@@ -117,7 +117,7 @@ For manual verification, check the landing page, catalog, profile, active orders
 
 ## Display currency
 
-The display-currency selector supports **IDR, USD, EUR, GBP, CAD, and JPY**. It appears above shared app pages and beside the landing-page highlights. The selected currency is remembered in the browser and synchronized between tabs.
+The display-currency selector supports **IDR, USD, EUR, GBP, CAD, and JPY**, with **USD as the default** for visitors without a saved preference. It appears above shared app pages and beside the landing-page highlights. An explicitly selected currency is remembered in the browser and synchronized between tabs. Clearing the preference restores the USD default; invalid or inaccessible saved preferences also use that default.
 
 Reference rates come from [Frankfurter v2](https://frankfurter.dev/). The feed publishes daily observations; this is an instantly updating price display using the latest published reference rates, not a tick-by-tick trading feed. Each conversion is marked as approximate and shows the relevant publication date. JPY and IDR use whole units; USD, EUR, GBP, and CAD use two decimals.
 

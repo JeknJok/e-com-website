@@ -122,11 +122,17 @@
             if (save) { try { window.localStorage.setItem(STORAGE_KEY, select.value); } catch (_) { /* Selection still works when storage is disabled. */ } }
             model.select(select.value);
         }
-        let remembered = 'IDR';
-        try { remembered = supported(window.localStorage.getItem(STORAGE_KEY)); } catch (_) { /* Private browsing may disable storage. */ }
+        const defaultCurrency = supported(select.value);
+        let remembered = defaultCurrency;
+        try {
+            const saved = window.localStorage.getItem(STORAGE_KEY);
+            if (CURRENCIES.includes(saved)) remembered = saved;
+        } catch (_) { /* Private browsing may disable storage. */ }
         select.disabled = false;
         select.addEventListener('change', () => choose(select.value, true));
-        window.addEventListener('storage', event => { if (event.key === STORAGE_KEY) choose(event.newValue); });
+        window.addEventListener('storage', event => {
+            if (event.key === STORAGE_KEY || event.key === null) choose(CURRENCIES.includes(event.newValue) ? event.newValue : defaultCurrency);
+        });
         const refresh = () => { if (document.visibilityState === 'visible') model.refresh(); };
         document.addEventListener('visibilitychange', refresh);
         window.setInterval(refresh, 15 * 60 * 1000);
