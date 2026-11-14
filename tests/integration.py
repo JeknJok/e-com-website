@@ -21,6 +21,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import xml.etree.ElementTree as ET
 from html.parser import HTMLParser
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -214,6 +215,54 @@ def register(base, email, name='Customer'):
     return client, int(sql('SELECT CustomerID FROM Customers WHERE CEmail = ?', [email])[0]['CustomerID'])
 
 
+def run_catalog_seed():
+    products = sql('SELECT * FROM Products ORDER BY pcode')
+    check(len(products) == 23 and len({product['pcategory'] for product in products}) == 6,
+          'Fresh setup includes five original toys and eighteen everyday products across six categories')
+    check([product['pname'] for product in products[:5]] ==
+          ['Pokemon PlaMo ' + name for name in ['Mimikyu', 'Rayquaza', 'Mew', 'Eevee', 'Pikachu']],
+          'Expanded setup preserves the original product order and IDs')
+    for product in products:
+        path = ROOT / product['pimage']
+        check(path.is_file() and int(product['pprice']) > 0,
+              'Every seed product has a bundled image and a positive whole-IDR price')
+        if path.suffix == '.svg':
+            document = ET.parse(path).getroot()
+            check(document.tag == '{http://www.w3.org/2000/svg}svg' and document.get('viewBox') == '0 0 600 450',
+                  'Product illustrations are valid, consistently sized SVGs')
+    check('0 added' in cli('scripts/seed-catalog.php').stdout and
+          sql('SELECT * FROM Products ORDER BY pcode') == products,
+          'Repeated catalog imports leave every existing product unchanged')
+
+    # Simulate an existing store containing only the original toys, admin edits, and an order.
+    existing = ENV['DB_NAME'] + '_catalog'
+    create_database(existing)
+    existing_env = dict(ENV, DB_NAME=existing)
+    cli('scripts/setup.php', existing_env)
+    sql(f'INSERT INTO Products SELECT * FROM `{ENV["DB_NAME"]}`.Products WHERE pcode <= 5', database=existing)
+    sql("UPDATE Products SET pname = 'Renamed collectible', pprice = 88888 WHERE pcode = 1", database=existing)
+    sql('UPDATE Products SET is_active = 0 WHERE pcode = 2', database=existing)
+    sql("UPDATE Products SET pimage = 'assets/img/logo-mae.png' WHERE pcode = 3", database=existing)
+    sql("INSERT INTO Products (pname, pcategory, pprice, pimage, pdesc) VALUES ('My own product', 'CUSTOM', 12345, 'assets/img/logo-mae.png', 'Keep my description')", database=existing)
+    sql("INSERT INTO Customers (CustomerName, ContactName, CAddress, City, Country, CPassword, CEmail) VALUES ('Existing', 'Existing', 'Test address', 'Test city', 'Test country', 'test-only', 'existing@example.test')", database=existing)
+    sql("INSERT INTO Orders (CustomerID, OrderStatus) VALUES (1, 'PAID')", database=existing)
+    sql("INSERT INTO OrderDetails (OrderID, pcode, pprice, qty, pname) VALUES (1, 1, 75000, 2, 'Historical name')", database=existing)
+    originals = sql('SELECT * FROM Products ORDER BY pcode', database=existing)
+    history = sql('SELECT * FROM OrderDetails', database=existing)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        imports = list(pool.map(lambda _: cli('scripts/seed-catalog.php', existing_env), range(2)))
+    added = sum(int(re.search(r'(\d+) added', result.stdout).group(1)) for result in imports)
+    check(added == 18 and len(sql('SELECT pcode FROM Products', database=existing)) == 24,
+          'Concurrent imports add each everyday product once to an existing store')
+    check(sql('SELECT * FROM Products WHERE pcode <= 6 ORDER BY pcode', database=existing) == originals,
+          'Import preserves renamed products, edited prices and images, archives, custom items, and IDs')
+    check(sql('SELECT * FROM OrderDetails', database=existing) == history and
+          sql('SELECT OrderStatus FROM Orders', database=existing)[0]['OrderStatus'] == 'PAID',
+          'Catalog expansion leaves historical order names, prices, quantities, and status unchanged')
+    check('0 added' in cli('scripts/seed-catalog.php', existing_env).stdout,
+          'Existing-store import remains repeatable after edits and concurrent runs')
+
+
 def run_http(base, admin_email, admin_password):
     public = Client(base)
     code, body, headers = public.get('index.php')
@@ -226,6 +275,13 @@ def run_http(base, admin_email, admin_password):
           'Landing page offers exactly the supported currency choices')
     check(Document(body).prices and all(value > 0 for value in Document(body).prices),
           'Public prices retain exact original IDR amounts for conversion')
+    highlight_categories = re.findall(r'class="portfolio-caption-subheading">([^<]+)</p>', body)
+    check(len(highlight_categories) == 6 and len(set(highlight_categories)) == 6,
+          'Homepage highlights sample every available category rather than only the earliest toys')
+    for product in sql("SELECT pimage FROM Products WHERE pimage LIKE 'assets/img/catalog/%'"):
+        image_code, image, image_headers = public.get(product['pimage'])
+        check(image_code == 200 and 'image/svg+xml' in image_headers.get('Content-Type', '') and '<svg' in image,
+              'Bundled everyday product illustrations are served successfully')
     for filename in FX_DIRECTORY.glob('rates.json*'):
         filename.unlink()
     date = time.strftime('%Y-%m-%d', time.gmtime())
@@ -275,6 +331,23 @@ def run_http(base, admin_email, admin_password):
     admin.login(admin_email, admin_password, admin=True)
     alice, aid = register(base, 'alice@example.test', "Alice <script>alert('x')</script>")
     bob, bid = register(base, 'bob@example.test', 'Bob')
+    for category in ['ELECTRONICS', 'HOME & KITCHEN', 'CLOTHING', 'BAGS & ACCESSORIES', 'STATIONERY', 'TOYS']:
+        expected = sql('SELECT pname FROM Products WHERE pcategory = ? AND is_active = 1', [category])
+        code, catalog, _ = alice.get('admin/catalog.php?' + urllib.parse.urlencode({'category': category}))
+        check(code == 200 and catalog.count('class="product-card"') == len(expected) and
+              all(name['pname'] in catalog for name in expected),
+              'Every catalog category filters to its own available products')
+    check(alice.get('admin/catalog.php?search=Notebook')[1].count('class="product-card"') == 1,
+          'Common products can be found by the existing catalog search')
+    everyday, eid = register(base, 'everyday@example.test', 'Everyday shopper')
+    headphones = sql("SELECT pcode, pprice FROM Products WHERE pname = 'Wireless Headphones'")[0]
+    check(everyday.post('admin/addToOrders.php', {'pcode': headphones['pcode'], 'qty': 2, 'pprice': 1})[0] == 303,
+          'An everyday product uses the normal add-to-order flow')
+    common_order = sql('SELECT d.* FROM OrderDetails d JOIN Orders o ON o.OrderID = d.OrderID WHERE o.CustomerID = ?', [eid])[0]
+    check(int(common_order['pprice']) == int(headphones['pprice']) and common_order['pname'] == 'Wireless Headphones' and int(common_order['qty']) == 2,
+          'Everyday product orders retain authoritative IDR prices, names, and quantities')
+    check('data-money-idr="498000"' in everyday.get(f'admin/OrderDetails_list.php?OrderID={common_order["OrderID"]}')[1],
+          'Everyday product subtotals support the existing currency converter')
     check(alice.get('admin/user_list.php')[0] == 403, 'Customer cannot use admin routes')
     check(alice.post('admin/user_insert.php', {'firstName': 'Fake'})[0] == 403, 'Customer cannot create admins')
     profile = alice.get('admin/Customers_profile.php')[1]
@@ -585,6 +658,7 @@ def main():
     create_database(ENV['DB_NAME'])
     seed = subprocess.run([PHP, str(ROOT / 'scripts/setup.php'), '--seed'], env=ENV, capture_output=True, text=True)
     check(seed.returncode == 0, 'Fresh setup: ' + seed.stderr)
+    run_catalog_seed()
     admin_email, admin_password = 'admin@example.test', secrets.token_urlsafe(20)
     cli('scripts/create-admin.php', dict(ENV, ADMIN_EMAIL=admin_email, ADMIN_PASSWORD=admin_password))
     with server(ENV) as base:

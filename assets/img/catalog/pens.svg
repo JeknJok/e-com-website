@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450" role="img" aria-labelledby="title">
+<title id="title">Set of three cream, graphite, and blue ballpoint pens</title><defs>
+<linearGradient id="dark" x2="1" y2="1"><stop stop-color="#505963"/><stop offset=".5" stop-color="#282e35"/><stop offset="1" stop-color="#171c22"/></linearGradient>
+<linearGradient id="paper" x2="1" y2=".2"><stop stop-color="#f6f1e4"/><stop offset=".5" stop-color="#e8dfc9"/><stop offset="1" stop-color="#d0c3a8"/></linearGradient>
+<linearGradient id="metal"><stop stop-color="#8e9eab"/><stop offset=".24" stop-color="#e5edf0"/><stop offset=".55" stop-color="#bac8d1"/><stop offset="1" stop-color="#718693"/></linearGradient>
+<linearGradient id="blue" x2=".9" y2="1"><stop stop-color="#668b9e"/><stop offset="1" stop-color="#2a495b"/></linearGradient>
+<linearGradient id="olive" x2="1" y2="1"><stop stop-color="#8b987a"/><stop offset="1" stop-color="#4e5d48"/></linearGradient>
+<linearGradient id="cream" x2=".9" y2="1"><stop stop-color="#fffdf5"/><stop offset=".6" stop-color="#eee8d9"/><stop offset="1" stop-color="#ccc4b3"/></linearGradient>
+<linearGradient id="leather" x2="1" y2="1"><stop stop-color="#946d4e"/><stop offset="1" stop-color="#513827"/></linearGradient>
+<linearGradient id="light" x1=".5" x2=".5" y2="1"><stop stop-color="#f1cf69" stop-opacity=".3"/><stop offset="1" stop-color="#f1cf69" stop-opacity="0"/></linearGradient>
+</defs><rect width="600" height="450" fill="#fbfaf7"/>
+<ellipse cx="296" cy="383" rx="151" ry="10" fill="#24343d" opacity=".08"/>
+<g transform="rotate(14 210 230)"><path d="m200 311 10 52 10-52Z" fill="url(#metal)"/><path d="m208 352 2 14 2-14Z" fill="#26343b"/>
+<rect x="200" y="112" width="20" height="202" rx="7" fill="#eee9dc"/><rect x="200" y="119" width="20" height="7" fill="#b3a587"/>
+<rect x="204" y="90" width="12" height="25" rx="4" fill="#b3a587"/><path d="M217 124h9v76q0 7-7 7" fill="none" stroke="#b3a587" stroke-width="5" stroke-linecap="round"/>
+<path d="M204 226v72" stroke="#fbfaf4" stroke-width="2" opacity=".4"/></g><g transform="rotate(14 295 230)"><path d="m285 311 10 52 10-52Z" fill="url(#metal)"/><path d="m293 352 2 14 2-14Z" fill="#26343b"/>
+<rect x="285" y="112" width="20" height="202" rx="7" fill="#3b454c"/><rect x="285" y="119" width="20" height="7" fill="#d5b45c"/>
+<rect x="289" y="90" width="12" height="25" rx="4" fill="#d5b45c"/><path d="M302 124h9v76q0 7-7 7" fill="none" stroke="#d5b45c" stroke-width="5" stroke-linecap="round"/>
+<path d="M289 226v72" stroke="#fbfaf4" stroke-width="2" opacity=".4"/></g><g transform="rotate(14 380 230)"><path d="m370 311 10 52 10-52Z" fill="url(#metal)"/><path d="m378 352 2 14 2-14Z" fill="#26343b"/>
+<rect x="370" y="112" width="20" height="202" rx="7" fill="#577a8b"/><rect x="370" y="119" width="20" height="7" fill="#cbd4d5"/>
+<rect x="374" y="90" width="12" height="25" rx="4" fill="#cbd4d5"/><path d="M387 124h9v76q0 7-7 7" fill="none" stroke="#cbd4d5" stroke-width="5" stroke-linecap="round"/>
+<path d="M374 226v72" stroke="#fbfaf4" stroke-width="2" opacity=".4"/></g>
+</svg>

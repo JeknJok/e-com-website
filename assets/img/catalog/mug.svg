@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450" role="img" aria-labelledby="title">
+<title id="title">Cream ceramic coffee mug with a wide handle</title><defs>
+<linearGradient id="dark" x2="1" y2="1"><stop stop-color="#505963"/><stop offset=".5" stop-color="#282e35"/><stop offset="1" stop-color="#171c22"/></linearGradient>
+<linearGradient id="paper" x2="1" y2=".2"><stop stop-color="#f6f1e4"/><stop offset=".5" stop-color="#e8dfc9"/><stop offset="1" stop-color="#d0c3a8"/></linearGradient>
+<linearGradient id="metal"><stop stop-color="#8e9eab"/><stop offset=".24" stop-color="#e5edf0"/><stop offset=".55" stop-color="#bac8d1"/><stop offset="1" stop-color="#718693"/></linearGradient>
+<linearGradient id="blue" x2=".9" y2="1"><stop stop-color="#668b9e"/><stop offset="1" stop-color="#2a495b"/></linearGradient>
+<linearGradient id="olive" x2="1" y2="1"><stop stop-color="#8b987a"/><stop offset="1" stop-color="#4e5d48"/></linearGradient>
+<linearGradient id="cream" x2=".9" y2="1"><stop stop-color="#fffdf5"/><stop offset=".6" stop-color="#eee8d9"/><stop offset="1" stop-color="#ccc4b3"/></linearGradient>
+<linearGradient id="leather" x2="1" y2="1"><stop stop-color="#946d4e"/><stop offset="1" stop-color="#513827"/></linearGradient>
+<linearGradient id="light" x1=".5" x2=".5" y2="1"><stop stop-color="#f1cf69" stop-opacity=".3"/><stop offset="1" stop-color="#f1cf69" stop-opacity="0"/></linearGradient>
+</defs><rect width="600" height="450" fill="#fbfaf7"/>
+<ellipse cx="292" cy="363" rx="130" ry="15" fill="#24343d" opacity=".08"/>
+
+<path d="M373 165h24c72 0 72 132 0 132h-30" fill="none" stroke="#c7bdab" stroke-width="27"/>
+<path d="M371 162h24c69 0 69 123 0 123h-25" fill="none" stroke="#f2eddf" stroke-width="23"/>
+<path d="M174 145h213l-12 167c-4 52-187 52-191 0Z" fill="url(#cream)"/>
+<ellipse cx="280" cy="145" rx="106" ry="31" fill="#d4cbbb"/>
+<ellipse cx="280" cy="144" rx="94" ry="23" fill="#594435"/>
+<ellipse cx="280" cy="141" rx="89" ry="19" fill="#6e5140"/>
+<path d="M198 184v116q1 13 12 20" fill="none" stroke="#fffef8" stroke-width="8" stroke-linecap="round" opacity=".8"/>
+<path d="M194 327q86 30 169 0" fill="none" stroke="#bdb5a6" stroke-width="2"/>
+</svg>

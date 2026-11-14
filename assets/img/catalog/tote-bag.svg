@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450" role="img" aria-labelledby="title">
+<title id="title">Natural canvas tote bag with long handles</title><defs>
+<linearGradient id="dark" x2="1" y2="1"><stop stop-color="#505963"/><stop offset=".5" stop-color="#282e35"/><stop offset="1" stop-color="#171c22"/></linearGradient>
+<linearGradient id="paper" x2="1" y2=".2"><stop stop-color="#f6f1e4"/><stop offset=".5" stop-color="#e8dfc9"/><stop offset="1" stop-color="#d0c3a8"/></linearGradient>
+<linearGradient id="metal"><stop stop-color="#8e9eab"/><stop offset=".24" stop-color="#e5edf0"/><stop offset=".55" stop-color="#bac8d1"/><stop offset="1" stop-color="#718693"/></linearGradient>
+<linearGradient id="blue" x2=".9" y2="1"><stop stop-color="#668b9e"/><stop offset="1" stop-color="#2a495b"/></linearGradient>
+<linearGradient id="olive" x2="1" y2="1"><stop stop-color="#8b987a"/><stop offset="1" stop-color="#4e5d48"/></linearGradient>
+<linearGradient id="cream" x2=".9" y2="1"><stop stop-color="#fffdf5"/><stop offset=".6" stop-color="#eee8d9"/><stop offset="1" stop-color="#ccc4b3"/></linearGradient>
+<linearGradient id="leather" x2="1" y2="1"><stop stop-color="#946d4e"/><stop offset="1" stop-color="#513827"/></linearGradient>
+<linearGradient id="light" x1=".5" x2=".5" y2="1"><stop stop-color="#f1cf69" stop-opacity=".3"/><stop offset="1" stop-color="#f1cf69" stop-opacity="0"/></linearGradient>
+</defs><rect width="600" height="450" fill="#fbfaf7"/>
+<ellipse cx="302" cy="391" rx="123" ry="11" fill="#24343d" opacity=".08"/>
+
+<path d="M235 180V97q0-37 35-37t35 37v83m-10 0V97q0-37 35-37t35 37v83" fill="none" stroke="#c7b996" stroke-width="17"/>
+<path d="M236 173V97q0-32 34-32m26 108V97q0-32 34-32" fill="none" stroke="#f5eedb" stroke-width="4"/>
+<path d="M179 166h242l-14 204q-108 19-214 0Z" fill="url(#paper)" stroke="#b9aa89" stroke-width="2"/>
+<path d="M185 184h230m-211 175 8-164m176 164-8-164" stroke="#a99b7d" stroke-width="2" stroke-dasharray="3 4"/>
+<path d="m194 352 25-25h166l22 43q-104 16-213 0Z" fill="#cabb9d" opacity=".5"/>
+<rect x="280" y="243" width="40" height="28" rx="2" fill="#f8f2e3"/><path d="M289 254h22m-22 8h15" stroke="#a89b7f" stroke-width="2"/>
+<path d="M216 218v102" stroke="#fff9e8" stroke-width="7" opacity=".5"/>
+</svg>

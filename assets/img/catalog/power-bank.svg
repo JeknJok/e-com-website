@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450" role="img" aria-labelledby="title">
+<title id="title">Graphite portable power bank with USB port</title><defs>
+<linearGradient id="dark" x2="1" y2="1"><stop stop-color="#505963"/><stop offset=".5" stop-color="#282e35"/><stop offset="1" stop-color="#171c22"/></linearGradient>
+<linearGradient id="paper" x2="1" y2=".2"><stop stop-color="#f6f1e4"/><stop offset=".5" stop-color="#e8dfc9"/><stop offset="1" stop-color="#d0c3a8"/></linearGradient>
+<linearGradient id="metal"><stop stop-color="#8e9eab"/><stop offset=".24" stop-color="#e5edf0"/><stop offset=".55" stop-color="#bac8d1"/><stop offset="1" stop-color="#718693"/></linearGradient>
+<linearGradient id="blue" x2=".9" y2="1"><stop stop-color="#668b9e"/><stop offset="1" stop-color="#2a495b"/></linearGradient>
+<linearGradient id="olive" x2="1" y2="1"><stop stop-color="#8b987a"/><stop offset="1" stop-color="#4e5d48"/></linearGradient>
+<linearGradient id="cream" x2=".9" y2="1"><stop stop-color="#fffdf5"/><stop offset=".6" stop-color="#eee8d9"/><stop offset="1" stop-color="#ccc4b3"/></linearGradient>
+<linearGradient id="leather" x2="1" y2="1"><stop stop-color="#946d4e"/><stop offset="1" stop-color="#513827"/></linearGradient>
+<linearGradient id="light" x1=".5" x2=".5" y2="1"><stop stop-color="#f1cf69" stop-opacity=".3"/><stop offset="1" stop-color="#f1cf69" stop-opacity="0"/></linearGradient>
+</defs><rect width="600" height="450" fill="#fbfaf7"/>
+<ellipse cx="300" cy="377" rx="105" ry="13" fill="#24343d" opacity=".08"/>
+
+<rect x="200" y="83" width="200" height="284" rx="24" fill="#111a22"/>
+<rect x="201" y="83" width="190" height="275" rx="23" fill="url(#dark)"/>
+<path d="M213 103h162" stroke="#69747d" stroke-width="2"/>
+<rect x="230" y="87" width="47" height="12" rx="3" fill="#0a1117"/><rect x="237" y="90" width="32" height="5" fill="#76919c"/>
+<rect x="309" y="88" width="25" height="9" rx="4" fill="#0a1117"/>
+<path d="m305 171-28 54h26l-8 41 33-60h-27Z" fill="#d8b45b"/>
+<circle cx="260" cy="314" r="3" fill="#c7d9d9"/><circle cx="278" cy="314" r="3" fill="#c7d9d9"/><circle cx="296" cy="314" r="3" fill="#c7d9d9"/><circle cx="314" cy="314" r="3" fill="#71808a"/>
+<path d="M397 133v34" stroke="#89969e" stroke-width="4" stroke-linecap="round"/>
+</svg>

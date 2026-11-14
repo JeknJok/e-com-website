@@ -16,14 +16,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $admin = current_admin();
 $customer = $admin ? null : current_customer();
 $shopHref = $customer ? url('admin/catalog.php') : url('index.php') . '#login';
-$products = rows('SELECT pcode, pname, pcategory, pprice, pimage, pdesc FROM Products WHERE is_active = 1 ORDER BY pcode LIMIT 6');
+$products = rows('SELECT pcode, pname, pcategory, pprice, pimage, pdesc FROM
+    (SELECT pcode, pname, pcategory, pprice, pimage, pdesc,
+     ROW_NUMBER() OVER (PARTITION BY pcategory ORDER BY pcode DESC) AS category_position
+     FROM Products WHERE is_active = 1) AS highlights
+    ORDER BY category_position, pcode DESC LIMIT 6');
 ?>
 <!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="M-A-E-Commerce: collectible finds and the most affordable items known to mankind. A personal ecommerce project by Nealle Benedict Adisaputro.">
+    <meta name="description" content="M-A-E-Commerce: everyday essentials, collectible finds, and the most affordable items known to mankind. A personal ecommerce project by Nealle Benedict Adisaputro.">
     <title>M-A-E-Commerce · Most Known to Mankind!</title>
     <?php theme_head(); ?>
     <link rel="stylesheet" href="<?= e(url('css/landing.css')) ?>">
@@ -57,7 +61,7 @@ $products = rows('SELECT pcode, pname, pcategory, pprice, pimage, pdesc FROM Pro
             <div class="container">
                 <div class="text-center section-intro">
                     <h2 class="section-heading text-uppercase" id="highlights-heading">Catalog Highlights</h2>
-                    <p class="section-subheading">Featuring the most affordable items known to mankind!</p>
+                    <p class="section-subheading">Everyday essentials and collectible finds. Most affordable, known to mankind!</p>
                 </div>
                 <div class="landing-currency"><?php currency_selector(); ?></div>
                 <div class="row g-4">

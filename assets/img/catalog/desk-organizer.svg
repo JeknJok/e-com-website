@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450" role="img" aria-labelledby="title">
+<title id="title">Cream desk organizer holding stationery</title><defs>
+<linearGradient id="dark" x2="1" y2="1"><stop stop-color="#505963"/><stop offset=".5" stop-color="#282e35"/><stop offset="1" stop-color="#171c22"/></linearGradient>
+<linearGradient id="paper" x2="1" y2=".2"><stop stop-color="#f6f1e4"/><stop offset=".5" stop-color="#e8dfc9"/><stop offset="1" stop-color="#d0c3a8"/></linearGradient>
+<linearGradient id="metal"><stop stop-color="#8e9eab"/><stop offset=".24" stop-color="#e5edf0"/><stop offset=".55" stop-color="#bac8d1"/><stop offset="1" stop-color="#718693"/></linearGradient>
+<linearGradient id="blue" x2=".9" y2="1"><stop stop-color="#668b9e"/><stop offset="1" stop-color="#2a495b"/></linearGradient>
+<linearGradient id="olive" x2="1" y2="1"><stop stop-color="#8b987a"/><stop offset="1" stop-color="#4e5d48"/></linearGradient>
+<linearGradient id="cream" x2=".9" y2="1"><stop stop-color="#fffdf5"/><stop offset=".6" stop-color="#eee8d9"/><stop offset="1" stop-color="#ccc4b3"/></linearGradient>
+<linearGradient id="leather" x2="1" y2="1"><stop stop-color="#946d4e"/><stop offset="1" stop-color="#513827"/></linearGradient>
+<linearGradient id="light" x1=".5" x2=".5" y2="1"><stop stop-color="#f1cf69" stop-opacity=".3"/><stop offset="1" stop-color="#f1cf69" stop-opacity="0"/></linearGradient>
+</defs><rect width="600" height="450" fill="#fbfaf7"/>
+<ellipse cx="299" cy="380" rx="166" ry="11" fill="#24343d" opacity=".08"/>
+
+<rect x="317" y="147" width="82" height="168" rx="5" fill="url(#blue)" transform="rotate(7 357 220)"/>
+<rect x="334" y="174" width="63" height="131" rx="3" fill="#e5dcc6" transform="rotate(-6 365 240)"/>
+<path d="m196 263-27-150 13-20 13 16 27 150Z" fill="#d1af55"/><path d="m169 113 13-20 13 16" fill="#e4cfaa"/><path d="m180 98 2-5 5 4" fill="#34434c"/>
+<rect x="222" y="108" width="12" height="168" rx="5" fill="#466779" transform="rotate(4 228 190)"/>
+<path d="M249 257v-94" stroke="#9ba8ae" stroke-width="9"/>
+<ellipse cx="246" cy="139" rx="15" ry="25" fill="none" stroke="#3c4f58" stroke-width="9"/>
+<ellipse cx="280" cy="142" rx="15" ry="25" fill="none" stroke="#3c4f58" stroke-width="9"/><path d="m254 158 28 91" stroke="#9ba8ae" stroke-width="9"/>
+<path d="M147 234h303v113q0 19-20 19H167q-20 0-20-19Z" fill="url(#cream)" stroke="#c6bda9" stroke-width="2"/>
+<path d="M147 234h303l-17 29H167Z" fill="#d8d0be"/><path d="M297 237v122m98-114v114" stroke="#b7ac98" stroke-width="3"/>
+<path d="M167 265v76q0 7 8 7h107" fill="none" stroke="#fffdf5" stroke-width="5"/>
+<rect x="315" y="304" width="63" height="41" rx="4" fill="#e3c77b"/><path d="M325 316h42m-42 9h33" stroke="#b99f59" stroke-width="2"/>
+</svg>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450" role="img" aria-labelledby="title">
+<title id="title">Olive canvas everyday backpack</title><defs>
+<linearGradient id="dark" x2="1" y2="1"><stop stop-color="#505963"/><stop offset=".5" stop-color="#282e35"/><stop offset="1" stop-color="#171c22"/></linearGradient>
+<linearGradient id="paper" x2="1" y2=".2"><stop stop-color="#f6f1e4"/><stop offset=".5" stop-color="#e8dfc9"/><stop offset="1" stop-color="#d0c3a8"/></linearGradient>
+<linearGradient id="metal"><stop stop-color="#8e9eab"/><stop offset=".24" stop-color="#e5edf0"/><stop offset=".55" stop-color="#bac8d1"/><stop offset="1" stop-color="#718693"/></linearGradient>
+<linearGradient id="blue" x2=".9" y2="1"><stop stop-color="#668b9e"/><stop offset="1" stop-color="#2a495b"/></linearGradient>
+<linearGradient id="olive" x2="1" y2="1"><stop stop-color="#8b987a"/><stop offset="1" stop-color="#4e5d48"/></linearGradient>
+<linearGradient id="cream" x2=".9" y2="1"><stop stop-color="#fffdf5"/><stop offset=".6" stop-color="#eee8d9"/><stop offset="1" stop-color="#ccc4b3"/></linearGradient>
+<linearGradient id="leather" x2="1" y2="1"><stop stop-color="#946d4e"/><stop offset="1" stop-color="#513827"/></linearGradient>
+<linearGradient id="light" x1=".5" x2=".5" y2="1"><stop stop-color="#f1cf69" stop-opacity=".3"/><stop offset="1" stop-color="#f1cf69" stop-opacity="0"/></linearGradient>
+</defs><rect width="600" height="450" fill="#fbfaf7"/>
+<ellipse cx="300" cy="391" rx="129" ry="11" fill="#24343d" opacity=".08"/>
+
+<path d="M262 92V76q0-23 38-23t38 23v16" fill="none" stroke="#674f3b" stroke-width="14"/>
+<path d="M211 123q-49 72-28 218m206-218q49 72 28 218" stroke="#43513e" stroke-width="20" fill="none"/>
+<path d="M190 199q0-111 110-111t110 111v148q0 28-29 28H219q-29 0-29-28Z" fill="url(#olive)" stroke="#4f6047" stroke-width="3"/>
+<path d="M205 201q0-95 95-95t95 95" fill="none" stroke="#c0c7a8" stroke-width="3"/>
+<path d="M211 211h178" stroke="#3e4f3d" stroke-width="7"/><path d="M214 209h170" stroke="#adba9f" stroke-width="2"/>
+<rect x="219" y="258" width="162" height="94" rx="15" fill="#6a7c59" stroke="#4c6047" stroke-width="2"/>
+<path d="M227 277h146" stroke="#354c37" stroke-width="4"/><rect x="351" y="275" width="8" height="18" rx="2" fill="#c8a75a"/>
+<rect x="277" y="171" width="46" height="25" rx="4" fill="#a98d61"/><path d="M287 184h26" stroke="#64553a" stroke-width="2"/>
+<path d="M207 234v92m186-92v92" stroke="#b1bd9e" stroke-width="2" opacity=".6"/>
+</svg>

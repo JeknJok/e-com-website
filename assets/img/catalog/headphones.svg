@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450" role="img" aria-labelledby="title">
+<title id="title">Graphite over-ear wireless headphones</title><defs>
+<linearGradient id="dark" x2="1" y2="1"><stop stop-color="#505963"/><stop offset=".5" stop-color="#282e35"/><stop offset="1" stop-color="#171c22"/></linearGradient>
+<linearGradient id="paper" x2="1" y2=".2"><stop stop-color="#f6f1e4"/><stop offset=".5" stop-color="#e8dfc9"/><stop offset="1" stop-color="#d0c3a8"/></linearGradient>
+<linearGradient id="metal"><stop stop-color="#8e9eab"/><stop offset=".24" stop-color="#e5edf0"/><stop offset=".55" stop-color="#bac8d1"/><stop offset="1" stop-color="#718693"/></linearGradient>
+<linearGradient id="blue" x2=".9" y2="1"><stop stop-color="#668b9e"/><stop offset="1" stop-color="#2a495b"/></linearGradient>
+<linearGradient id="olive" x2="1" y2="1"><stop stop-color="#8b987a"/><stop offset="1" stop-color="#4e5d48"/></linearGradient>
+<linearGradient id="cream" x2=".9" y2="1"><stop stop-color="#fffdf5"/><stop offset=".6" stop-color="#eee8d9"/><stop offset="1" stop-color="#ccc4b3"/></linearGradient>
+<linearGradient id="leather" x2="1" y2="1"><stop stop-color="#946d4e"/><stop offset="1" stop-color="#513827"/></linearGradient>
+<linearGradient id="light" x1=".5" x2=".5" y2="1"><stop stop-color="#f1cf69" stop-opacity=".3"/><stop offset="1" stop-color="#f1cf69" stop-opacity="0"/></linearGradient>
+</defs><rect width="600" height="450" fill="#fbfaf7"/>
+<ellipse cx="300" cy="369" rx="146" ry="14" fill="#24343d" opacity=".08"/>
+
+<path d="M179 255v-52a121 121 0 0 1 242 0v52" fill="none" stroke="#1f252c" stroke-width="29"/>
+<path d="M182 191a119 119 0 0 1 236 0" fill="none" stroke="#626b75" stroke-width="13"/>
+<path d="M186 190a116 116 0 0 1 228 0" fill="none" stroke="#87909a" stroke-width="2"/>
+<path d="M179 214v88m242-88v88" stroke="#c3a258" stroke-width="9"/>
+<rect x="150" y="225" width="74" height="125" rx="33" fill="url(#dark)" transform="rotate(-12 187 287)"/>
+<rect x="376" y="225" width="74" height="125" rx="33" fill="url(#dark)" transform="rotate(12 413 287)"/>
+<rect x="174" y="234" width="38" height="106" rx="18" fill="#12171c" transform="rotate(-12 193 287)"/>
+<rect x="388" y="234" width="38" height="106" rx="18" fill="#12171c" transform="rotate(12 407 287)"/>
+<path d="M160 250q-5 41 14 73m265-73q5 41-14 73" stroke="#747d86" stroke-width="3" fill="none"/>
+<circle cx="439" cy="296" r="3" fill="#e8c15b"/>
+</svg>

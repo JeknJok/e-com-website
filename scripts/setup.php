@@ -12,8 +12,8 @@ foreach (explode(';', file_get_contents(dirname(__DIR__) . '/database/schema.sql
     if (trim($sql) !== '') { execute($sql); }
 }
 if (in_array('--seed', $argv, true)) {
-    foreach ([['Mimikyu', 120000, 'mimikyu.jpg'], ['Rayquaza', 150000, 'rayquaza.jpg'], ['Mew', 100000, 'mew.jpg'], ['Eevee', 100000, 'eevee.jpg'], ['Pikachu', 110000, 'pikachu.jpg']] as [$name, $price, $image]) {
-        execute('INSERT INTO Products (pname, pcategory, pprice, pimage, pdesc) VALUES (?, ?, ?, ?, ?)', ['Pokemon PlaMo ' . $name, 'TOYS', $price, 'assets/img/portfolio/' . $image, 'Build your own ' . $name . ' model.']);
-    }
+    require dirname(__DIR__) . '/app/catalog-seed.php';
+    $result = seed_catalog();
+    echo "Catalog ready: {$result['added']} products added.\n";
 }
 echo "Database initialized. Create an administrator with scripts/create-admin.php.\n";

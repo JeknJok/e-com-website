@@ -12,6 +12,24 @@ A server-rendered PHP/MySQL portfolio application with customer and administrato
 
 The `expiry` service cancels expired invoices every minute. Database data and uploaded images use named volumes. After source changes, rebuild with `docker compose up --build -d`.
 
+## Expanded demo catalog
+
+The sample catalog includes **23 products across six categories**: the five original Pokémon collectibles plus 18 everyday items in Electronics, Home & Kitchen, Clothing, Bags & Accessories, and Stationery. Examples include headphones, a mouse, a keyboard, a power bank, a mug, a bottle, a desk lamp, a towel, clothing, sneakers, bags, a wallet, a notebook, pens, and a desk organizer. Prices are illustrative whole-IDR amounts, and all new product illustrations are bundled with the application.
+
+Fresh databases initialized with `scripts/setup.php --seed` receive the complete catalog. **For an existing local store**, pull the branch, rebuild the Docker image, and import the missing products:
+
+```sh
+git pull --ff-only
+docker compose up --build -d
+docker compose exec web php scripts/seed-catalog.php
+```
+
+For native PHP, run `php scripts/seed-catalog.php` from the project directory. Do not rerun `setup.php` against an existing store. No schema migration is needed for this catalog addition.
+
+The importer matches existing names or bundled image paths, preserves their IDs and edited fields, leaves archived products archived, and never changes accounts or orders. It is safe to repeat; simultaneous importer runs are serialized per database. If both a product's name and original image path have been replaced, it is treated as a custom item and the missing demo item can be added again.
+
+The shop's existing category filter automatically includes these categories. Homepage highlights choose one active product from each category before filling any remaining places, so the selection shows the wider catalog. New items use the same search, order, and display-currency flows as collectibles.
+
 ## Native PHP setup
 
 Requirements: PHP 8.2+ with `mysqli`/mysqlnd, `mbstring`, and `fileinfo`; MySQL 8.0+ or MariaDB 10.11+; a database and database account. Python 3 is needed for the regression suite.

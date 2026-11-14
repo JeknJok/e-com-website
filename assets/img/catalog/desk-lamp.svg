@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450" role="img" aria-labelledby="title">
+<title id="title">Adjustable charcoal desk lamp</title><defs>
+<linearGradient id="dark" x2="1" y2="1"><stop stop-color="#505963"/><stop offset=".5" stop-color="#282e35"/><stop offset="1" stop-color="#171c22"/></linearGradient>
+<linearGradient id="paper" x2="1" y2=".2"><stop stop-color="#f6f1e4"/><stop offset=".5" stop-color="#e8dfc9"/><stop offset="1" stop-color="#d0c3a8"/></linearGradient>
+<linearGradient id="metal"><stop stop-color="#8e9eab"/><stop offset=".24" stop-color="#e5edf0"/><stop offset=".55" stop-color="#bac8d1"/><stop offset="1" stop-color="#718693"/></linearGradient>
+<linearGradient id="blue" x2=".9" y2="1"><stop stop-color="#668b9e"/><stop offset="1" stop-color="#2a495b"/></linearGradient>
+<linearGradient id="olive" x2="1" y2="1"><stop stop-color="#8b987a"/><stop offset="1" stop-color="#4e5d48"/></linearGradient>
+<linearGradient id="cream" x2=".9" y2="1"><stop stop-color="#fffdf5"/><stop offset=".6" stop-color="#eee8d9"/><stop offset="1" stop-color="#ccc4b3"/></linearGradient>
+<linearGradient id="leather" x2="1" y2="1"><stop stop-color="#946d4e"/><stop offset="1" stop-color="#513827"/></linearGradient>
+<linearGradient id="light" x1=".5" x2=".5" y2="1"><stop stop-color="#f1cf69" stop-opacity=".3"/><stop offset="1" stop-color="#f1cf69" stop-opacity="0"/></linearGradient>
+</defs><rect width="600" height="450" fill="#fbfaf7"/>
+<ellipse cx="302" cy="378" rx="121" ry="10" fill="#24343d" opacity=".08"/>
+
+<path d="m279 173-91 186h238L339 173Z" fill="url(#light)"/>
+<ellipse cx="300" cy="360" rx="112" ry="20" fill="#1d2931"/>
+<ellipse cx="300" cy="355" rx="112" ry="18" fill="url(#dark)"/>
+<path d="M313 350v-91l68-81-52-69" fill="none" stroke="#2e3b43" stroke-width="14" stroke-linejoin="round"/>
+<path d="M307 346v-90l67-80-51-65" fill="none" stroke="#65737a" stroke-width="3"/>
+<circle cx="381" cy="178" r="14" fill="#18272f"/><circle cx="381" cy="178" r="5" fill="#d6b058"/>
+<path d="M323 101c-23-21-75-13-93 16l-35 55q72 34 144-5Z" fill="url(#dark)"/>
+<ellipse cx="268" cy="171" rx="73" ry="15" fill="#d6b76b"/>
+<ellipse cx="268" cy="169" rx="60" ry="9" fill="#fff2be"/>
+<circle cx="259" cy="348" r="7" fill="#d9b55a"/>
+</svg>

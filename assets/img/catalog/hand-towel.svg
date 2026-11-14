@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450" role="img" aria-labelledby="title">
+<title id="title">Folded sage cotton hand towel</title><defs>
+<linearGradient id="dark" x2="1" y2="1"><stop stop-color="#505963"/><stop offset=".5" stop-color="#282e35"/><stop offset="1" stop-color="#171c22"/></linearGradient>
+<linearGradient id="paper" x2="1" y2=".2"><stop stop-color="#f6f1e4"/><stop offset=".5" stop-color="#e8dfc9"/><stop offset="1" stop-color="#d0c3a8"/></linearGradient>
+<linearGradient id="metal"><stop stop-color="#8e9eab"/><stop offset=".24" stop-color="#e5edf0"/><stop offset=".55" stop-color="#bac8d1"/><stop offset="1" stop-color="#718693"/></linearGradient>
+<linearGradient id="blue" x2=".9" y2="1"><stop stop-color="#668b9e"/><stop offset="1" stop-color="#2a495b"/></linearGradient>
+<linearGradient id="olive" x2="1" y2="1"><stop stop-color="#8b987a"/><stop offset="1" stop-color="#4e5d48"/></linearGradient>
+<linearGradient id="cream" x2=".9" y2="1"><stop stop-color="#fffdf5"/><stop offset=".6" stop-color="#eee8d9"/><stop offset="1" stop-color="#ccc4b3"/></linearGradient>
+<linearGradient id="leather" x2="1" y2="1"><stop stop-color="#946d4e"/><stop offset="1" stop-color="#513827"/></linearGradient>
+<linearGradient id="light" x1=".5" x2=".5" y2="1"><stop stop-color="#f1cf69" stop-opacity=".3"/><stop offset="1" stop-color="#f1cf69" stop-opacity="0"/></linearGradient>
+</defs><rect width="600" height="450" fill="#fbfaf7"/>
+<ellipse cx="295" cy="360" rx="159" ry="11" fill="#24343d" opacity=".08"/>
+
+<path d="M140 165q0-14 18-14h269q20 0 20 21v151q0 24-25 24H164q-24 0-24-24Z" fill="#667c61"/>
+<path d="M144 161q0-13 18-13h256q20 0 20 21v150q0 18-20 18H162q-18 0-18-18Z" fill="url(#olive)"/>
+<path d="M149 168h280v21H149Zm0 136h280v20H149Z" fill="#a4b39a"/>
+<path d="M151 173h275m-275 7h275m-275 130h275m-275 7h275" stroke="#d4ddc9" stroke-width="2"/>
+<path d="M154 189h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 194h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 199h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 204h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 209h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 214h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 219h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 224h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 229h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 234h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 239h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 244h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 249h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 254h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 259h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 264h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 269h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 274h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 279h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 284h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 289h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 294h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 299h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 304h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 309h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 314h267" stroke="#c4d2bb" opacity=".26"/><path d="M154 319h267" stroke="#c4d2bb" opacity=".26"/><path d="M163 147v188m254-188v188" stroke="#d0dbc5" opacity=".35"/>
+<path d="M159 342h264" stroke="#405a42" stroke-width="3"/>
+</svg>

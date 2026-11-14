@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450" role="img" aria-labelledby="title">
+<title id="title">Sand-colored zip-up hoodie</title><defs>
+<linearGradient id="dark" x2="1" y2="1"><stop stop-color="#505963"/><stop offset=".5" stop-color="#282e35"/><stop offset="1" stop-color="#171c22"/></linearGradient>
+<linearGradient id="paper" x2="1" y2=".2"><stop stop-color="#f6f1e4"/><stop offset=".5" stop-color="#e8dfc9"/><stop offset="1" stop-color="#d0c3a8"/></linearGradient>
+<linearGradient id="metal"><stop stop-color="#8e9eab"/><stop offset=".24" stop-color="#e5edf0"/><stop offset=".55" stop-color="#bac8d1"/><stop offset="1" stop-color="#718693"/></linearGradient>
+<linearGradient id="blue" x2=".9" y2="1"><stop stop-color="#668b9e"/><stop offset="1" stop-color="#2a495b"/></linearGradient>
+<linearGradient id="olive" x2="1" y2="1"><stop stop-color="#8b987a"/><stop offset="1" stop-color="#4e5d48"/></linearGradient>
+<linearGradient id="cream" x2=".9" y2="1"><stop stop-color="#fffdf5"/><stop offset=".6" stop-color="#eee8d9"/><stop offset="1" stop-color="#ccc4b3"/></linearGradient>
+<linearGradient id="leather" x2="1" y2="1"><stop stop-color="#946d4e"/><stop offset="1" stop-color="#513827"/></linearGradient>
+<linearGradient id="light" x1=".5" x2=".5" y2="1"><stop stop-color="#f1cf69" stop-opacity=".3"/><stop offset="1" stop-color="#f1cf69" stop-opacity="0"/></linearGradient>
+</defs><rect width="600" height="450" fill="#fbfaf7"/>
+<ellipse cx="300" cy="392" rx="159" ry="10" fill="#24343d" opacity=".08"/>
+
+<path d="M239 119q-4-66 61-66t61 66l-21 32h-80Z" fill="url(#paper)" stroke="#b8aa8c" stroke-width="2"/>
+<path d="M263 117q-2-44 37-44t37 44l-37 35Z" fill="#ac9d7f"/>
+<path d="m245 128-64 25-60 171 58 19 36-98-7 132h184l-7-132 36 98 58-19-60-171-64-25-55 26Z" fill="url(#paper)"/>
+<path d="M300 155v221" stroke="#7f755f" stroke-width="4"/>
+<path d="M305 161v205" stroke="#f7f1df" stroke-width="2"/>
+<rect x="294" y="170" width="12" height="21" rx="3" fill="#8b8b7b"/>
+<path d="M265 154v74m70-74v74" stroke="#f9f2e1" stroke-width="4" stroke-linecap="round"/>
+<path d="m239 284-13 55h57v-55Zm122 0 13 55h-57v-55Z" fill="#c9bc9f" stroke="#b0a284" stroke-width="2"/>
+<path d="M210 360h180m-258-44 44 15m248 0 44-15" stroke="#a79a7e" stroke-width="7"/>
+<path d="m206 176 12 63m176-63-12 63" stroke="#f8f1df" stroke-width="3"/>
+</svg>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450" role="img" aria-labelledby="title">
+<title id="title">Brown bifold wallet with card slots</title><defs>
+<linearGradient id="dark" x2="1" y2="1"><stop stop-color="#505963"/><stop offset=".5" stop-color="#282e35"/><stop offset="1" stop-color="#171c22"/></linearGradient>
+<linearGradient id="paper" x2="1" y2=".2"><stop stop-color="#f6f1e4"/><stop offset=".5" stop-color="#e8dfc9"/><stop offset="1" stop-color="#d0c3a8"/></linearGradient>
+<linearGradient id="metal"><stop stop-color="#8e9eab"/><stop offset=".24" stop-color="#e5edf0"/><stop offset=".55" stop-color="#bac8d1"/><stop offset="1" stop-color="#718693"/></linearGradient>
+<linearGradient id="blue" x2=".9" y2="1"><stop stop-color="#668b9e"/><stop offset="1" stop-color="#2a495b"/></linearGradient>
+<linearGradient id="olive" x2="1" y2="1"><stop stop-color="#8b987a"/><stop offset="1" stop-color="#4e5d48"/></linearGradient>
+<linearGradient id="cream" x2=".9" y2="1"><stop stop-color="#fffdf5"/><stop offset=".6" stop-color="#eee8d9"/><stop offset="1" stop-color="#ccc4b3"/></linearGradient>
+<linearGradient id="leather" x2="1" y2="1"><stop stop-color="#946d4e"/><stop offset="1" stop-color="#513827"/></linearGradient>
+<linearGradient id="light" x1=".5" x2=".5" y2="1"><stop stop-color="#f1cf69" stop-opacity=".3"/><stop offset="1" stop-color="#f1cf69" stop-opacity="0"/></linearGradient>
+</defs><rect width="600" height="450" fill="#fbfaf7"/>
+<ellipse cx="301" cy="366" rx="176" ry="13" fill="#24343d" opacity=".08"/>
+
+<g transform="rotate(-7 300 240)"><path d="M149 138h306q14 0 14 15v179q0 20-20 20H154q-20 0-20-20V158q0-20 15-20Z" fill="#37291e"/>
+<rect x="140" y="133" width="319" height="209" rx="16" fill="url(#leather)"/>
+<path d="M300 143v190" stroke="#3e2c1e" stroke-width="5"/>
+<rect x="163" y="158" width="110" height="63" rx="6" fill="#536e73"/><rect x="169" y="180" width="98" height="55" rx="4" fill="#d1b46c"/>
+<path d="M154 204h129v118H154Z" fill="#805c3d"/><path d="M154 229h129m-129 35h129" stroke="#4f3725" stroke-width="4"/>
+<path d="M316 165h123v157H316Z" fill="#6a4930"/><path d="M316 211h123m-123 38h123" stroke="#3f2a1c" stroke-width="4"/>
+<rect x="150" y="143" width="299" height="189" rx="10" fill="none" stroke="#b28a5d" stroke-width="2" stroke-dasharray="4 4"/>
+<path d="M176 194h52" stroke="#f1dc9e" stroke-width="3"/></g>
+</svg>

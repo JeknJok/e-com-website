@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="450" viewBox="0 0 600 450" role="img" aria-labelledby="title">
+<title id="title">Blue-gray compact wireless mouse</title><defs>
+<linearGradient id="dark" x2="1" y2="1"><stop stop-color="#505963"/><stop offset=".5" stop-color="#282e35"/><stop offset="1" stop-color="#171c22"/></linearGradient>
+<linearGradient id="paper" x2="1" y2=".2"><stop stop-color="#f6f1e4"/><stop offset=".5" stop-color="#e8dfc9"/><stop offset="1" stop-color="#d0c3a8"/></linearGradient>
+<linearGradient id="metal"><stop stop-color="#8e9eab"/><stop offset=".24" stop-color="#e5edf0"/><stop offset=".55" stop-color="#bac8d1"/><stop offset="1" stop-color="#718693"/></linearGradient>
+<linearGradient id="blue" x2=".9" y2="1"><stop stop-color="#668b9e"/><stop offset="1" stop-color="#2a495b"/></linearGradient>
+<linearGradient id="olive" x2="1" y2="1"><stop stop-color="#8b987a"/><stop offset="1" stop-color="#4e5d48"/></linearGradient>
+<linearGradient id="cream" x2=".9" y2="1"><stop stop-color="#fffdf5"/><stop offset=".6" stop-color="#eee8d9"/><stop offset="1" stop-color="#ccc4b3"/></linearGradient>
+<linearGradient id="leather" x2="1" y2="1"><stop stop-color="#946d4e"/><stop offset="1" stop-color="#513827"/></linearGradient>
+<linearGradient id="light" x1=".5" x2=".5" y2="1"><stop stop-color="#f1cf69" stop-opacity=".3"/><stop offset="1" stop-color="#f1cf69" stop-opacity="0"/></linearGradient>
+</defs><rect width="600" height="450" fill="#fbfaf7"/>
+<ellipse cx="300" cy="381" rx="95" ry="12" fill="#24343d" opacity=".08"/>
+
+<path d="M200 252c0-116 33-165 100-165s100 49 100 165c0 83-36 121-100 121s-100-38-100-121Z" fill="#172c38"/>
+<path d="M207 246c0-108 31-153 93-153s93 45 93 153c0 78-32 115-93 115s-93-37-93-115Z" fill="url(#blue)"/>
+<path d="M300 94v143m-89 0h178" stroke="#1c3542" stroke-width="3"/>
+<rect x="285" y="143" width="30" height="63" rx="14" fill="#23333e"/>
+<rect x="290" y="149" width="20" height="49" rx="9" fill="url(#metal)"/>
+<path d="M293 159h14m-14 7h14m-14 7h14m-14 7h14m-14 7h14" stroke="#7a8b95" stroke-width="2"/>
+<path d="M230 157q-13 30-13 66" stroke="#a5bcc8" stroke-width="4" fill="none" opacity=".6"/>
+<circle cx="300" cy="273" r="3" fill="#dfb74f"/>
+</svg>
