@@ -155,4 +155,4 @@ python3 tests/security.py
 composer audit --locked
 ```
 
-The Docker deployment suite uses disposable data and a local TLS authority: `python3 tests/production.py`. It builds the actual image and verifies Apache handlers, TLS/proxy trust, restricted grants, MFA, encrypted backups, and an isolated restore. It requires a Linux Docker environment; CI also runs it. The existing currency and order behavior is covered by regression tests.
+The Docker deployment suite uses disposable data and a local TLS authority: `python3 tests/production.py`. It builds the actual image and verifies Apache handlers, TLS/proxy trust, restricted grants, MFA, encrypted backups, and an isolated restore. It requires a Linux Docker environment and a local hosts entry mapping `mae.localhost` to `127.0.0.1`; CI supplies that mapping. The existing currency and order behavior is covered by regression tests.

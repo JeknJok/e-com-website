@@ -58,7 +58,7 @@ class Client:
 
     def request(self, path, values=None):
         body = urllib.parse.urlencode(values).encode() if values is not None else None
-        request = urllib.request.Request('https://localhost/' + path, data=body)
+        request = urllib.request.Request('https://mae.localhost/' + path, data=body)
         try: response = self.opener.open(request, timeout=20)
         except urllib.error.HTTPError as error: response = error
         with response:
@@ -115,7 +115,7 @@ def run(env, work):
     check(json.loads(compose(['exec', '-T', 'web', 'php', '-r', code], env).stdout) == ['app_key', 'db_runtime'], 'Web service receives only its two required secrets')
     code = "define('MAE_NO_AUTH_JOB',true);require 'app/bootstrap.php'; expire_orders(); try{rows('SELECT CEmail FROM Customers'); exit(1);}catch(mysqli_sql_exception $e){if($e->getCode()!==1142){throw $e;} echo 'restricted';}"
     check(compose(['exec', '-T', 'expiry', 'php', '-r', code], env).stdout.strip() == 'restricted', 'Scheduled expiry cannot read customer data')
-    code = "$c=stream_context_create(['http'=>['ignore_errors'=>true,'header'=>\"Host: localhost\r\nX-Forwarded-Proto: https\r\nX-Real-IP: 198.51.100.1\r\n\"]]);file_get_contents('http://127.0.0.1:8080/index.php',false,$c);echo json_encode($http_response_header);"
+    code = "$c=stream_context_create(['http'=>['ignore_errors'=>true,'header'=>\"Host: mae.localhost\r\nX-Forwarded-Proto: https\r\nX-Real-IP: 198.51.100.1\r\n\"]]);file_get_contents('http://127.0.0.1:8080/index.php',false,$c);echo json_encode($http_response_header);"
     response = json.loads(compose(['exec', '-T', 'web', 'php', '-r', code], env).stdout)
     check('400' in response[0] and not any('Set-Cookie:' in h for h in response), 'Forged forwarding headers from an untrusted connection cannot create a production session')
 
@@ -176,7 +176,7 @@ def main():
     # The private 0700 parent protects the writable fixture bind mount across host/container UIDs.
     init = subprocess.run([os.getenv('PHP_BIN', 'php'), 'scripts/init-secrets.php', '--directory=' + str(secret_dir)], cwd=ROOT, capture_output=True, text=True)
     check(init.returncode == 0, 'Generated test secrets initialize without printing values')
-    settings = {'MAE_HOST': 'localhost', 'SECRETS_DIRECTORY': str(secret_dir), 'BACKUP_DIRECTORY': str(backup_dir), 'HSTS_ENABLED': '1'}
+    settings = {'MAE_HOST': 'mae.localhost', 'SECRETS_DIRECTORY': str(secret_dir), 'BACKUP_DIRECTORY': str(backup_dir), 'HSTS_ENABLED': '1'}
     env = dict(os.environ, **settings)
     STATE.parent.mkdir(parents=True, exist_ok=True); STATE.write_text(json.dumps({'environment': settings, 'fixture_directory': str(work)}))
     try: run(env, work)
