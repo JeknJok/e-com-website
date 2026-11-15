@@ -5,6 +5,7 @@ import base64
 import hashlib
 import hmac
 import http.cookiejar
+import http.cookies
 import json
 import os
 from pathlib import Path
@@ -94,7 +95,9 @@ def run(env, work):
     cookie = headers.get('Set-Cookie', '')
     # A previous readiness request may already have issued this cookie; use a new browser jar.
     status, body, headers = Client(context).request('index.php'); cookie = headers.get('Set-Cookie', '')
-    check(all(flag in cookie for flag in ['Secure', 'HttpOnly', 'SameSite=Lax']), 'Production session cookie has all required attributes')
+    parsed_cookie = http.cookies.SimpleCookie(); parsed_cookie.load(cookie)
+    protected = parsed_cookie.get('mae_session')
+    check(protected is not None and bool(protected['secure']) and bool(protected['httponly']) and protected['samesite'].lower() == 'lax', 'Production session cookie has all required attributes')
     check("script-src 'self'" in headers.get('Content-Security-Policy', '') and headers.get('Strict-Transport-Security') == 'max-age=31536000', 'CSP and configured HSTS apply under TLS')
     for path in ['app/bootstrap.php', 'database/schema.sql', 'vendor/autoload.php', 'config.example.php', '.env.example', 'compose.production.yaml', 'docker/Caddyfile']:
         check(visitor.request(path)[0] in (403, 404), 'Apache denies internal path: ' + path)
