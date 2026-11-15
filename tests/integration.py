@@ -305,6 +305,8 @@ def run_http(base, admin_email, admin_password):
     document = Document(body)
     check(code == 200 and len(document.ids) == len(set(document.ids)), 'Landing page has unique IDs')
     check('id="contact"' in body and 'href="#services"' not in body, 'Landing-page anchors exist')
+    for path in ['assets/vendor/bootstrap.min.css', 'assets/vendor/bootstrap.bundle.min.js', 'assets/vendor/fonts/fonts.css', 'assets/vendor/fonts/font-5.woff2']:
+        check(public.get(path)[0] == 200, 'Local browser dependency is served without exposing root vendor code: ' + path)
     cookie = headers.get('Set-Cookie', '')
     check('HttpOnly' in cookie and 'SameSite=Lax' in cookie, 'Session cookies are protected')
     check('data-currency-select' in body and all(f'value="{code}"' in body for code in ['IDR', 'USD', 'EUR', 'GBP', 'CAD', 'JPY']),
@@ -639,6 +641,15 @@ def run_migration():
     for statement in LEGACY:
         sql(statement, database=name)
     env = dict(ENV, DB_NAME=name)
+    snapshot = PRIVATE_DIRECTORY / 'pre-migration.maebackup'
+    backup_env = dict(env, BACKUP_KEY=base64.b64encode(secrets.token_bytes(32)).decode())
+    cli('scripts/backup.php', backup_env, args=['--create=' + str(snapshot)])
+    check(snapshot.exists() and b'old-pass-42' not in snapshot.read_bytes(), 'An encrypted recovery copy can be made before migrating the original schema')
+    restore_name = ENV['DB_NAME'] + '_pre_upgrade_restore'
+    create_database(restore_name)
+    restore_media = PRIVATE_DIRECTORY / 'pre-upgrade-media'; restore_media.mkdir()
+    cli('scripts/backup.php', dict(backup_env, DB_NAME=restore_name), args=['--restore=' + str(snapshot), '--uploads=' + str(restore_media)])
+    check(sql('SELECT CPassword FROM Customers WHERE CustomerID = 1', database=restore_name)[0]['CPassword'] == 'old-pass-42', 'A pre-migration snapshot restores the original data into an isolated target')
     result = cli('scripts/migrate.php', env)
     check('Pre-existing orphan detail rows retained for manual review: 1' in result.stdout, 'Migration reports and preserves pre-existing orphan data')
     customer = sql('SELECT * FROM Customers', database=name)[0]

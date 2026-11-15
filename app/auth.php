@@ -28,10 +28,15 @@ function verify_password(string $password, string $hash): bool
     return password_verify($password, $hash);
 }
 
+function rotate_session_id(): void
+{
+    if (session_status() !== PHP_SESSION_ACTIVE || !session_regenerate_id(true)) { throw new RuntimeException('Could not rotate the private login session.'); }
+}
+
 function clear_authentication(): void
 {
-    if (session_status() === PHP_SESSION_ACTIVE) { session_regenerate_id(true); }
     $_SESSION = [];
+    if (session_status() === PHP_SESSION_ACTIVE) { rotate_session_id(); }
     csrf_token();
 }
 
@@ -90,8 +95,9 @@ function require_fresh_admin(): array
 
 function complete_login(string $kind, int $id, string $name, int $version, bool $mfa = false): void
 {
+    rotate_session_id();
+    $_SESSION = [];
     audit_event('auth.login', $id, 'success', $kind, $id);
-    session_regenerate_id(true);
     $_SESSION = [$kind === 'admin' ? 'AdminID' : 'CustomerID' => $id, 'ContactName' => $name,
         'auth' => ['version' => $version, 'issued_at' => time(), 'last_seen' => time(), 'mfa_at' => $mfa ? time() : 0]];
     csrf_token();
@@ -196,7 +202,7 @@ function confirm_current_password(array $account, string $password): void
 function refresh_customer_session(int $id, int $version): void
 {
     if (isset($_SESSION['CustomerID']) && (int)$_SESSION['CustomerID'] === $id) {
-        session_regenerate_id(true);
+        rotate_session_id();
         $_SESSION['auth']['version'] = $version;
         $_SESSION['auth']['issued_at'] = $_SESSION['auth']['last_seen'] = time();
         unset($_SESSION['active_orders']);

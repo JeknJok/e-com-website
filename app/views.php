@@ -88,7 +88,7 @@ function submitted_value(string $name, mixed $fallback = ''): string
 function field(string $name, string $label, mixed $value = '', string $type = 'text', int $maxlength = 100, bool $required = true): void
 {
     $value = $type === 'password' ? '' : submitted_value($name, $value);
-    ?><div class="mb-3"><label class="form-label" for="<?= e($name) ?>"><?= e($label) ?><?= $required ? '' : ' <span class="text-muted">(optional)</span>' ?></label><input class="form-control" type="<?= e($type) ?>" id="<?= e($name) ?>" name="<?= e($name) ?>" value="<?= e($value) ?>" <?= $type === 'number' ? 'min="1" step="1"' : '' ?> maxlength="<?= $maxlength ?>" <?= $required ? 'required' : '' ?> <?= $type === 'password' ? ($name === 'current_password' ? 'autocomplete="current-password"' : 'autocomplete="new-password"') : '' ?>></div><?php
+    ?><div class="mb-3"><label class="form-label" for="<?= e($name) ?>"><?= e($label) ?><?= $required ? '' : ' <span class="text-muted">(optional)</span>' ?></label><input class="form-control" type="<?= e($type) ?>" id="<?= e($name) ?>" name="<?= e($name) ?>" value="<?= e($value) ?>" <?= $type === 'number' ? 'min="1" step="1"' : '' ?> maxlength="<?= $maxlength ?>" <?= $required ? 'required' : '' ?> <?= $type === 'password' ? ($name === 'current_password' ? 'autocomplete="current-password"' : ($name === 'recovery_code' ? 'autocomplete="one-time-code"' : 'autocomplete="new-password"')) : '' ?>></div><?php
 }
 
 function action_form(string $path, array $values, string $label, string $style = 'secondary'): void

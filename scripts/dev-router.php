@@ -11,7 +11,7 @@ if ($base !== '' && ($path === $base || str_starts_with($path, $base . '/'))) {
 } elseif ($base !== '') {
     http_response_code(404); exit;
 }
-if (preg_match('#(^|/)(\.|app(?:/|$)|database(?:/|$)|scripts(?:/|$)|tests(?:/|$)|vendor(?:/|$)|docs(?:/|$)|docker(?:/|$)|config\.|composer\.|package(?:-lock)?\.json)#', $path) || str_contains($path, "\0")) {
+if (preg_match('#(^|/)\.#', $path) || preg_match('#^/(?:app|database|scripts|tests|vendor|docs|docker)(?:/|$)|^/(?:config\.|composer\.|package(?:-lock)?\.json)#', $path) || str_contains($path, "\0")) {
     http_response_code(404); exit;
 }
 $root = dirname(__DIR__);
@@ -20,6 +20,8 @@ $file = realpath($root . ($path === '/' || $path === '' ? '/index.php' : $path))
 if (!$file || !str_starts_with($file, $root . DIRECTORY_SEPARATOR) || !is_file($file)) {
     http_response_code(404); echo 'Not found'; exit;
 }
+$resolvedPath = substr($file, strlen($root));
+if (preg_match('#^/(?:app|database|scripts|tests|vendor|docs|docker)(?:/|$)|^/(?:config\.|\.)#', $resolvedPath)) { http_response_code(404); exit; }
 // Legacy uploads must never execute, even if a previous version accepted PHP files.
 if (str_starts_with($file, $root . '/assets/uploads/') && !preg_match('/^[A-Za-z0-9_-]+\.(?:jpe?g|png|webp)$/iD', basename($file))) {
     http_response_code(404); exit;

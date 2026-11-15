@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 date_default_timezone_set('UTC');
+if (PHP_SAPI === 'cli') { set_time_limit(0); }
 
 // All web entry points load this before sending output.
 $localConfig = dirname(__DIR__) . '/config.local.php';
@@ -39,7 +40,8 @@ final class HttpError extends RuntimeException
 
 set_exception_handler(function (Throwable $error): void {
     if (PHP_SAPI === 'cli') {
-        fwrite(STDERR, $error->getMessage() . PHP_EOL);
+        $message = $error instanceof mysqli_sql_exception ? 'Database operation failed (code ' . $error->getCode() . '). Check the selected database, grants, and schema.' : $error->getMessage();
+        fwrite(STDERR, $message . PHP_EOL);
         exit(1);
     }
     $status = $error instanceof HttpError ? $error->status : 500;
@@ -83,7 +85,7 @@ if (PHP_SAPI !== 'cli') {
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
-    session_start();
+    if (!session_start()) { throw new RuntimeException('Private session storage is unavailable.'); }
 }
 
 function redirect(string $location): never
@@ -203,14 +205,22 @@ function execute(string $sql, array $params = []): void
 
 function transaction(callable $callback, int $retries = 0): mixed
 {
+    if (!empty($GLOBALS['mae_in_transaction'])) { throw new LogicException('Nested database transactions require an explicit design.'); }
     for ($attempt = 0; ; $attempt++) {
         db()->begin_transaction();
+        $GLOBALS['mae_in_transaction'] = true;
+        $GLOBALS['mae_pending_audit'] = [];
         try {
             $result = $callback();
             db()->commit();
+            $GLOBALS['mae_in_transaction'] = false;
+            foreach ($GLOBALS['mae_pending_audit'] as $record) { error_log(json_encode($record, JSON_UNESCAPED_SLASHES)); }
+            $GLOBALS['mae_pending_audit'] = [];
             return $result;
         } catch (Throwable $error) {
             db()->rollback();
+            $GLOBALS['mae_in_transaction'] = false;
+            $GLOBALS['mae_pending_audit'] = [];
             // Only callers with database-only callbacks opt into replay. Uploads must not.
             if ($error instanceof mysqli_sql_exception && in_array($error->getCode(), [1205, 1213], true) && $attempt < $retries) {
                 usleep(random_int(2000, 15000) * ($attempt + 1));

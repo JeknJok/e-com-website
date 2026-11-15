@@ -141,11 +141,15 @@ function audit_event(string $event, ?int $target = null, string $outcome = 'succ
     if (!preg_match('/^[a-z_.]{1,64}$/D', $event) || !in_array($outcome, ['success', 'failure', 'blocked'], true)) {
         throw new LogicException('Invalid security event.');
     }
-    $kind ??= isset($_SESSION['AdminID']) ? 'admin' : (isset($_SESSION['CustomerID']) ? 'customer' : 'anonymous');
-    $actor ??= isset($_SESSION['AdminID']) ? (int)$_SESSION['AdminID'] : (isset($_SESSION['CustomerID']) ? (int)$_SESSION['CustomerID'] : null);
+    if ($kind === null) {
+        $kind = PHP_SAPI === 'cli' ? 'operator' : (isset($_SESSION['AdminID']) ? 'admin' : (isset($_SESSION['CustomerID']) ? 'customer' : 'anonymous'));
+        $actor ??= isset($_SESSION['AdminID']) ? (int)$_SESSION['AdminID'] : (isset($_SESSION['CustomerID']) ? (int)$_SESSION['CustomerID'] : null);
+    }
     execute('INSERT INTO SecurityEvents (event_name, actor_kind, actor_id, target_id, outcome, request_id) VALUES (?, ?, ?, ?, ?, ?)', [$event, $kind, $actor, $target, $outcome, request_id()]);
-    // Emit only the same bounded fields, for a host-controlled log collector.
-    error_log(json_encode(['security_event' => $event, 'actor_kind' => $kind, 'actor_id' => $actor, 'target_id' => $target, 'outcome' => $outcome, 'request_id' => request_id()], JSON_UNESCAPED_SLASHES));
+    $record = ['security_event' => $event, 'actor_kind' => $kind, 'actor_id' => $actor, 'target_id' => $target, 'outcome' => $outcome, 'request_id' => request_id()];
+    // Do not report a transaction as successful to an external collector before commit.
+    if (!empty($GLOBALS['mae_in_transaction'])) { $GLOBALS['mae_pending_audit'][] = $record; }
+    else { error_log(json_encode($record, JSON_UNESCAPED_SLASHES)); }
 }
 
 function request_id(): string

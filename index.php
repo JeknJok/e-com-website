@@ -105,6 +105,7 @@ $products = rows('SELECT pcode, pname, pcategory, pprice, pimage, pdesc FROM
                     <p class="section-subheading">Log in or <a href="<?= e(url('admin/Customers_insert.php')) ?>">register now</a> and start shopping.</p>
                 </div>
                 <?php portfolio_notice(); ?>
+                <?php if (isset($_SESSION['flash'])): ?><div class="alert alert-success" role="status"><?= e($_SESSION['flash']) ?></div><?php unset($_SESSION['flash']); endif ?>
                 <?php if ($customer || $admin): ?>
                 <div class="signed-in-note"><p>You are already signed in.</p><a class="btn btn-primary" href="<?= e(url($admin ? 'admin/dashboard.php' : 'admin/catalog.php')) ?>"><?= $admin ? 'Go to dashboard' : 'Continue shopping' ?></a></div>
                 <?php endif ?>

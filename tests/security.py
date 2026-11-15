@@ -185,6 +185,11 @@ def run_http(base, admin_email, admin_password, mfa_secret):
     it.check(it.sql('SELECT erased_at FROM Customers WHERE CustomerID = ?', [aged_id])[0]['erased_at'] is None, 'Retention defaults to a non-mutating dry run')
     it.cli('scripts/privacy.php', args=['--apply'])
     it.check(it.sql('SELECT erased_at FROM Customers WHERE CustomerID = ?', [aged_id])[0]['erased_at'], 'Retention erases inactive fictional accounts after the documented period')
+    second_admin = it.Client(base); second_admin.login(admin_email, admin_password, admin=True)
+    it.sql('UPDATE users_tb SET mfa_last_counter = ? WHERE id = ?', [int(time.time()) // 30 - 2, admin_id])
+    admin.get('admin/security.php')
+    it.check(admin.post('admin/security.php', {'current_password': admin_password, 'code': it.otp(mfa_secret), 'operation': 'logout_all'})[0] == 303, 'Administrator can revoke every session with password and new factor proof')
+    it.check(second_admin.get('admin/dashboard.php')[0] == 303 and admin.get('admin/dashboard.php')[0] == 303, 'Administrator logout-all invalidates independent cookies')
 
 
 def main():
@@ -192,6 +197,10 @@ def main():
     email, password = 'security-admin@example.test', secrets.token_urlsafe(24)
     it.cli('scripts/create-admin.php', dict(it.ENV, ADMIN_EMAIL=email, ADMIN_PASSWORD=password))
     secret = it.enroll_admin(email, password)
+    report = it.cli('scripts/security-report.php', success=False)
+    it.check(report.returncode == 2 and 'administrator_created' in json.loads(report.stdout)['alerts'] and password not in report.stdout, 'Operator reporting detects administrator changes without exposing credentials')
+    rollback = subprocess.run([it.PHP, '-r', "require 'app/bootstrap.php';try{transaction(function(){audit_event('fixture.rolled_back');throw new RuntimeException('fixture');});}catch(RuntimeException $e){}"], env=it.ENV, cwd=it.ROOT, capture_output=True, text=True)
+    it.check(rollback.returncode == 0 and 'fixture.rolled_back' not in rollback.stderr and not it.sql("SELECT id FROM SecurityEvents WHERE event_name = 'fixture.rolled_back'"), 'Rolled-back operations do not export a false success audit event')
     # Seed just one product; security tests should not depend on the merchandising catalog.
     it.sql("INSERT INTO Products (pname, pcategory, pprice, pimage, pdesc) VALUES ('Security fixture', 'TEST', 12345, 'assets/img/logo-mae.png', 'Fictional fixture')")
     with it.server(it.ENV) as base: run_http(base, email, password, secret)

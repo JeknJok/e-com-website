@@ -7,16 +7,19 @@ $database = setting('DB_NAME', 'NealleDB');
 if (!preg_match('/^[A-Za-z0-9_]+$/D', $database)) { throw new RuntimeException('Use a simple database identifier for provisioning.'); }
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 $root = new mysqli(setting('DB_HOST', 'db'), 'root', setting('DB_ROOT_PASSWORD'), $database, (int)setting('DB_PORT', '3306'));
+$root->set_charset('utf8mb4');
+// Account DDL does not accept parameter markers. Escape literals on this dedicated,
+// known-mode connection; account names and the database identifier are fixed/validated.
+$root->query("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION'");
 $identities = ['runtime' => 'mae_runtime', 'migration' => 'mae_migration', 'expiry' => 'mae_expiry', 'backup' => 'mae_backup', 'maintenance' => 'mae_maintenance'];
 $passwords = array_map(fn($purpose) => setting('DB_' . strtoupper($purpose) . '_PASSWORD'), array_keys($identities));
 if (count(array_unique([...$passwords, setting('DB_ROOT_PASSWORD')])) !== count($passwords) + 1) { throw new RuntimeException('Database identities must have distinct secrets.'); }
 foreach ($identities as $purpose => $user) {
     $password = setting('DB_' . strtoupper($purpose) . '_PASSWORD');
     if (strlen($password) < 20) { throw new RuntimeException('Configure distinct generated database secret files before provisioning.'); }
-    $statement = $root->prepare("CREATE USER IF NOT EXISTS '$user'@'%' IDENTIFIED BY ?");
-    $statement->execute([$password]); $statement->close();
-    $statement = $root->prepare("ALTER USER '$user'@'%' IDENTIFIED BY ?");
-    $statement->execute([$password]); $statement->close();
+    $literal = "'" . $root->real_escape_string($password) . "'";
+    $root->query("CREATE USER IF NOT EXISTS '$user'@'%' IDENTIFIED BY $literal");
+    $root->query("ALTER USER '$user'@'%' IDENTIFIED BY $literal");
     $root->query("REVOKE ALL PRIVILEGES, GRANT OPTION FROM '$user'@'%'");
 }
 $root->query("GRANT ALL PRIVILEGES ON $database.* TO 'mae_migration'@'%'");
