@@ -1,6 +1,7 @@
 FROM composer:2@sha256:ca11f643d7791ebdd90a34fc20caf11380d434007ae539a9ea75cd9212e13dca AS composer
 FROM php:8.3-apache@sha256:a800bbd2c0aa322702259ed475556b2cbc311076a8d3c4bba9bfe96838745472
 RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold upgrade -y --no-install-recommends \
     && apt-get install -y --no-install-recommends libonig-dev libjpeg62-turbo-dev libpng-dev libwebp-dev unzip \
     && docker-php-ext-configure gd --with-jpeg --with-webp \
     && docker-php-ext-install mysqli mbstring gd \
