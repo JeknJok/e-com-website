@@ -145,7 +145,7 @@ def run(env, work):
     customer.request('admin/catalog.php')
     check(customer.post('admin/addToOrders.php', {'pcode': '1', 'qty': '2'})[0] == 303, 'Runtime grants support an order transaction')
     compose(['run', '--rm', 'backup', 'php', 'scripts/backup.php', '--create=/backups/test.maebackup'], env)
-    code = "require 'app/bootstrap.php'; try{execute(\"UPDATE Customers SET ContactName='forbidden'\");exit(1);}catch(mysqli_sql_exception $e){if($e->getCode()!==1142){throw $e;}echo 'read-only';}"
+    code = "define('MAE_NO_AUTH_JOB',true);require 'app/bootstrap.php'; try{execute(\"UPDATE Customers SET ContactName='forbidden'\");exit(1);}catch(mysqli_sql_exception $e){if($e->getCode()!==1142){throw $e;}echo 'read-only';}"
     check(compose(['run', '--rm', 'backup', 'php', '-r', code], env).stdout.strip() == 'read-only', 'Backup identity cannot modify customer data')
     customer.request('admin/account-security.php')
     check(customer.post('admin/account-security.php', {'operation': 'erase', 'current_password': 'demo1234', 'confirmation': 'ERASE'})[0] == 303, 'Runtime grants support private account erasure')
