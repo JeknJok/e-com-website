@@ -100,7 +100,7 @@ Use `docker compose --env-file /private/deployment.env -f compose.production.yam
 5. `run --rm provision` again to grant precise runtime permissions after tables exist.
 6. Create/enroll the administrator through `operator`, passing only environment **names** with `-e ADMIN_EMAIL -e ADMIN_PASSWORD`/`-e MFA_CODE`, as in the local example.
 7. `up -d web proxy expiry maintenance`.
-8. Verify HTTPS, cookies, headers, login/MFA, media restrictions, and a backup/restore drill. Set `HSTS_ENABLED=1` and recreate `web` after HTTPS/domain ownership are verified. The policy does not preload the domain or automatically include every subdomain.
+8. Verify HTTPS, cookies, headers, login/MFA, media restrictions, and a backup/restore drill. Set `HSTS_ENABLED=1` and recreate `web` and `proxy` after HTTPS/domain ownership are verified. The edge applies HSTS to static/error responses too. The policy does not preload the domain or automatically include every subdomain.
 
 Provisioning is a maintenance operation: it revokes/reapplies grants and can briefly interrupt active requests. Do not run it on every restart. Reuse existing secret files with existing databases; changing a file does not automatically rotate the corresponding database account password.
 
@@ -183,6 +183,8 @@ If an incident occurs:
 CI checks functional/legacy migration regressions, focused security HTTP/database cases, RFC TOTP/crypto/proxy tests, currency behavior, locked Composer advisories, local PHP Semgrep rules, redacted repository-history secret scanning, the actual non-root Apache/TLS/proxy/least-privilege deployment, an encrypted backup/restore drill, Trivy's fixable high/critical image findings, and a passive ZAP baseline. Active scans belong only in disposable fictional-data environments. GitHub Actions are pinned to verified commit SHAs; deployed base images and scanner downloads are pinned to verified digests. No production secrets are supplied to pull-request code.
 
 The Gitleaks maintenance notice currently limits future releases to security patches. Recheck it before tool updates. The sole inline scanner exception is the published RFC 6238 test vector in `tests/security-unit.php`, never an account authenticator. The Semgrep rules cover selected PHP request boundaries, not all weaknesses. CodeQL is not counted as PHP coverage. Findings need review; neither scanner success nor these tests establish complete security or ASVS certification.
+
+The passive report's remaining notices are reviewed separately from release failures: escaped email-field reflections are not executable HTML; no-store responses, login/session detection, and JavaScript-driven UI are intended; cross-origin embedder isolation is not required by this application. They remain visible in scanner output rather than being globally suppressed. Reassess new findings and any change to their context.
 
 | Research work | Implementation/evidence |
 | --- | --- |

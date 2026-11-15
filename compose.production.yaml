@@ -50,6 +50,7 @@ services:
     image: caddy:2@sha256:4e2425f6009577e7c651010f16679c28f7d12df3e7b1914f941a7a3370746b3c
     environment:
       MAE_HOST: ${MAE_HOST:?Set MAE_HOST}
+      HSTS_ENABLED: ${HSTS_ENABLED:-0}
     ports: ["80:80", "443:443"]
     volumes: [./docker/Caddyfile:/etc/caddy/Caddyfile:ro, caddy_data:/data, caddy_config:/config]
     depends_on: [web]

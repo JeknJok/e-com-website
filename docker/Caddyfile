@@ -1,4 +1,10 @@
 {$MAE_HOST} {
+    header -Server
+    @hsts expression `"{$HSTS_ENABLED:0}" == "1"`
+    header @hsts {
+        Strict-Transport-Security "max-age=31536000"
+        defer
+    }
     tls {
         protocols tls1.2 tls1.3
     }

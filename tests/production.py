@@ -92,6 +92,7 @@ def run(env, work):
         time.sleep(.3)
     status, body, headers = visitor.request('index.php')
     check(status == 200 and 'use made-up details only' in body, 'Actual HTTPS deployment renders the portfolio warning')
+    check(visitor.request('')[0] == 200 and 'use made-up details only' in visitor.request('')[1], 'The root URL serves the MAE homepage')
     cookie = headers.get('Set-Cookie', '')
     # A previous readiness request may already have issued this cookie; use a new browser jar.
     status, body, headers = Client(context).request('index.php'); cookie = headers.get('Set-Cookie', '')
@@ -102,7 +103,10 @@ def run(env, work):
     for path in ['app/bootstrap.php', 'database/schema.sql', 'vendor/autoload.php', 'config.example.php', '.env.example', 'compose.production.yaml', 'docker/Caddyfile']:
         check(visitor.request(path)[0] in (403, 404), 'Apache denies internal path: ' + path)
     for path in ['assets/vendor/bootstrap.min.css', 'assets/vendor/bootstrap.bundle.min.js', 'assets/vendor/fonts/fonts.css']:
-        check(visitor.request(path)[0] == 200, 'Bundled browser dependency is available under CSP')
+        response = visitor.request(path)
+        check(response[0] == 200 and response[2].get('Strict-Transport-Security') == 'max-age=31536000', 'Bundled browser dependency is available with edge HTTPS policy')
+    missing = visitor.request('robots.txt')
+    check(missing[0] == 404 and missing[2].get('Strict-Transport-Security') == 'max-age=31536000' and missing[2].get('Server') is None and 'Apache/' not in missing[1], 'Error responses retain HSTS and omit server-version banners')
     uid = compose(['exec', '-T', 'web', 'id', '-u'], env).stdout.strip()
     check(uid != '0', 'Apache application runs without root')
     code = "$ok=@file_put_contents('/var/www/html/source-write-probe','bad'); if($ok!==false){exit(1);} echo 'denied';"

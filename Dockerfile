@@ -13,7 +13,7 @@ COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 WORKDIR /var/www/html
 COPY composer.json composer.lock ./
 RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --prefer-dist --no-scripts --no-plugins --no-interaction --classmap-authoritative
-COPY docker/apache.conf /etc/apache2/conf-enabled/mae.conf
+COPY docker/apache.conf /etc/apache2/conf-enabled/zz-mae.conf
 COPY docker/php.ini /usr/local/etc/php/conf.d/mae.ini
 COPY . /var/www/html/
 RUN mkdir -p /var/lib/mae /var/lock/mae-media \
