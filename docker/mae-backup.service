@@ -1,0 +1,11 @@
+[Unit]
+Description=Create an encrypted MAE portfolio snapshot
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+UMask=0077
+WorkingDirectory=/opt/mae
+ExecStart=/bin/sh -c 'exec /usr/bin/docker compose --env-file /etc/mae/deployment.env -f /opt/mae/compose.production.yaml run --rm backup php scripts/backup.php --create=/backups/mae-$(date -u +%%Y%%m%%dT%%H%%M%%SZ).maebackup'
+# Connect failed units to the host's monitoring. Export successful snapshots off-host.

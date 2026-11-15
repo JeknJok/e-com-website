@@ -3,16 +3,17 @@ require_once dirname(__DIR__) . '/app/bootstrap.php';
 require_once dirname(__DIR__) . '/app/accounts.php';
 $admin = current_admin();
 handle_form(function () use ($admin): void {
-    save_customer();
+    $id = save_customer(null, (bool)$admin);
     if ($admin) {
         flash('Customer created.');
         redirect(url('admin/Customers_list.php'));
     }
     login_account('customer', input('CEmail'), input('CPassword'));
-    flash('Your account is ready. Welcome to M-A-E-Commerce.');
-    redirect(url('admin/catalog.php'));
+    $_SESSION['new_recovery_codes'] = transaction(fn() => create_recovery_codes('customer', $id));
+    flash('Your demo account is ready. Save your recovery code, then explore the catalog.');
+    redirect(url('admin/account-security.php'));
 });
 page_start($admin ? 'Create customer' : 'Register now', $admin ? 'admin' : 'public');
-echo '<p class="text-muted">This is a portfolio prototype. Use fictional contact details.</p>';
+portfolio_notice();
 customer_form([], false);
 page_end();

@@ -3,3 +3,13 @@
 config.local.php
 tests/.runtime
 **/__pycache__
+
+.env.*
+!.env.example
+/vendor/
+*.maebackup
+*.sql.gz
+*.key
+
+/secrets/
+/backups/

@@ -1,7 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/app/bootstrap.php';
 require_once dirname(__DIR__) . '/app/accounts.php';
-require_admin();
+require_fresh_admin();
 handle_form(function (): void {
     save_admin();
     flash('Administrator created.');

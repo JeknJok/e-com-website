@@ -1,0 +1,167 @@
+# A separate deployment, not an override of the loopback development stack.
+x-app: &app
+  build: .
+  read_only: true
+  tmpfs: ["/tmp:rw,noexec,nosuid,size=64m"]
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  mem_limit: 512m
+  pids_limit: 64
+  depends_on:
+    db:
+      condition: service_healthy
+x-env: &environment
+  APP_ENV: production
+  APP_ORIGIN: https://${MAE_HOST:?Set MAE_HOST to your public domain}
+  COOKIE_SECURE: "1"
+  HSTS_ENABLED: ${HSTS_ENABLED:-0}
+  DB_HOST: db
+  DB_NAME: NealleDB
+  MEDIA_LOCK_DIR: /var/lock/mae-media
+services:
+  db:
+    image: mariadb:11.4@sha256:5e73baf8179b29f115101bb102763a47a017361f3e9792daccba6646c3ab1532
+    environment:
+      MARIADB_DATABASE: NealleDB
+      MARIADB_ROOT_HOST: "%"
+      MARIADB_ROOT_PASSWORD_FILE: /run/secrets/db_root
+    secrets: [db_root]
+    volumes: [database:/var/lib/mysql]
+    networks: [backend]
+    mem_limit: 768m
+    pids_limit: 128
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  web:
+    <<: *app
+    environment:
+      <<: *environment
+      TRUSTED_PROXIES: 172.30.30.10/32
+      APP_KEY_FILE: /run/secrets/app_key
+      DB_USER: mae_runtime
+      DB_PASSWORD_FILE: /run/secrets/db_runtime
+    secrets: [app_key, db_runtime]
+    volumes: [uploads:/var/www/html/assets/uploads, runtime:/var/lib/mae, media_locks:/var/lock/mae-media]
+    networks: [backend, edge]
+  proxy:
+    image: caddy:2@sha256:4e2425f6009577e7c651010f16679c28f7d12df3e7b1914f941a7a3370746b3c
+    environment:
+      MAE_HOST: ${MAE_HOST:?Set MAE_HOST}
+    ports: ["80:80", "443:443"]
+    volumes: [./docker/Caddyfile:/etc/caddy/Caddyfile:ro, caddy_data:/data, caddy_config:/config]
+    depends_on: [web]
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+    networks:
+      edge:
+        ipv4_address: 172.30.30.10
+  expiry:
+    <<: *app
+    command: ["sh", "-c", "while true; do php scripts/expire-orders.php; sleep 60; done"]
+    environment:
+      <<: *environment
+      DB_USER: mae_expiry
+      DB_PASSWORD_FILE: /run/secrets/db_expiry
+    secrets: [db_expiry]
+    networks: [backend]
+    mem_limit: 128m
+  operator:
+    <<: *app
+    profiles: [operator]
+    command: ["php", "scripts/security-check.php"]
+    environment:
+      <<: *environment
+      APP_KEY_FILE: /run/secrets/app_key
+      DB_USER: mae_migration
+      DB_PASSWORD_FILE: /run/secrets/db_migration
+      BACKUP_KEY_FILE: /run/secrets/backup_key
+    secrets: [app_key, db_migration, backup_key]
+    volumes:
+      - uploads:/var/www/html/assets/uploads
+      - operator_runtime:/var/lib/mae
+      - media_locks:/var/lock/mae-media
+      - ${BACKUP_DIRECTORY:?Set a private BACKUP_DIRECTORY}:/backups
+    networks: [backend]
+  backup:
+    <<: *app
+    profiles: [operator]
+    command: ["php", "scripts/backup.php"]
+    environment:
+      <<: *environment
+      DB_USER: mae_backup
+      DB_PASSWORD_FILE: /run/secrets/db_backup
+      BACKUP_KEY_FILE: /run/secrets/backup_key
+    secrets: [db_backup, backup_key]
+    volumes:
+      - uploads:/var/www/html/assets/uploads:ro
+      - backup_runtime:/var/lib/mae
+      - media_locks:/var/lock/mae-media
+      - ${BACKUP_DIRECTORY:?Set a private BACKUP_DIRECTORY}:/backups
+    networks: [backend]
+  maintenance:
+    <<: *app
+    command: ["sh", "-c", "while true; do php scripts/privacy.php --apply; php scripts/cleanup-media.php --apply; sleep 3600; done"]
+    environment:
+      <<: *environment
+      DB_USER: mae_maintenance
+      DB_PASSWORD_FILE: /run/secrets/db_maintenance
+    secrets: [db_maintenance]
+    volumes: [uploads:/var/www/html/assets/uploads, media_locks:/var/lock/mae-media]
+    networks: [backend]
+    mem_limit: 128m
+  provision:
+    <<: *app
+    profiles: [operator]
+    command: ["php", "scripts/provision-db.php"]
+    environment:
+      APP_ENV: development
+      DB_HOST: db
+      DB_NAME: NealleDB
+      APP_KEY_FILE: /run/secrets/app_key
+      DB_ROOT_PASSWORD_FILE: /run/secrets/db_root
+      DB_RUNTIME_PASSWORD_FILE: /run/secrets/db_runtime
+      DB_MIGRATION_PASSWORD_FILE: /run/secrets/db_migration
+      DB_EXPIRY_PASSWORD_FILE: /run/secrets/db_expiry
+      DB_BACKUP_PASSWORD_FILE: /run/secrets/db_backup
+      DB_MAINTENANCE_PASSWORD_FILE: /run/secrets/db_maintenance
+    secrets: [app_key, db_root, db_runtime, db_migration, db_expiry, db_backup, db_maintenance]
+    networks: [backend]
+networks:
+  backend:
+    internal: true
+  edge:
+    ipam:
+      config:
+        - subnet: 172.30.30.0/24
+volumes:
+  database:
+  uploads:
+  runtime:
+  operator_runtime:
+  backup_runtime:
+  media_locks:
+  caddy_data:
+  caddy_config:
+secrets:
+  app_key:
+    file: ${SECRETS_DIRECTORY:?Set private SECRETS_DIRECTORY}/app_key
+  backup_key:
+    file: ${SECRETS_DIRECTORY}/backup_key
+  db_root:
+    file: ${SECRETS_DIRECTORY}/db_root
+  db_runtime:
+    file: ${SECRETS_DIRECTORY}/db_runtime
+  db_migration:
+    file: ${SECRETS_DIRECTORY}/db_migration
+  db_expiry:
+    file: ${SECRETS_DIRECTORY}/db_expiry
+  db_backup:
+    file: ${SECRETS_DIRECTORY}/db_backup
+  db_maintenance:
+    file: ${SECRETS_DIRECTORY}/db_maintenance

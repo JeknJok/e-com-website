@@ -7,8 +7,9 @@ A server-rendered PHP/MySQL portfolio application with customer and administrato
 1. Copy `.env.example` to `.env` and replace both database password placeholders.
 2. Run `docker compose up --build -d`.
 3. For a **new, empty database**, run `docker compose exec web php scripts/setup.php --seed`. Omit `--seed` to start without sample products.
-4. Export `ADMIN_EMAIL` and `ADMIN_PASSWORD` in your terminal. Use a password of 8–72 bytes. Run `docker compose exec -e ADMIN_EMAIL -e ADMIN_PASSWORD web php scripts/create-admin.php`, then unset the password variable. No default administrator or shared login is installed.
-5. Open `http://localhost:8080`. The main page has customer and administrator login forms. Register using fictional details to try shopping.
+4. Export `ADMIN_EMAIL` and `ADMIN_PASSWORD` in your terminal. Use a unique administrator passphrase of 15–128 characters. Run `docker compose exec -e ADMIN_EMAIL -e ADMIN_PASSWORD web php scripts/create-admin.php`, then unset the password variable. No default administrator or shared login is installed.
+5. Enroll the administrator authenticator as described in [Account security setup](docs/security.md#administrator-enrollment). Password alone does not grant admin access.
+6. Open `http://localhost:8080`. The main page has customer and administrator login forms. Register with a fictional .test email, a username, and a disposable demo password (8–128 characters). Never use real personal information or a reused password. The login and registration pages explain this.
 
 The `expiry` service cancels expired invoices every minute. Database data and uploaded images use named volumes. After source changes, rebuild with `docker compose up --build -d`.
 
@@ -32,18 +33,20 @@ The shop's existing category filter automatically includes these categories. Hom
 
 ## Native PHP setup
 
-Requirements: PHP 8.2+ with `mysqli`/mysqlnd, `mbstring`, and `fileinfo`; MySQL 8.0+ or MariaDB 10.11+; a database and database account. Python 3 is needed for the regression suite.
+Requirements: PHP 8.2+ with `mysqli`/mysqlnd, `mbstring`, `fileinfo`, `ctype`, `gd`, Sodium, Argon2id, and Phar; Composer 2; MySQL 8.0+ or MariaDB 10.11+; a database and database account. Python 3 is needed for the regression suite.
 
 Create an empty `NealleDB` database using `utf8mb4`, and grant your application account access to it. Copy `config.example.php` to `config.local.php` and set connection details. Environment variables override local configuration:
 
 | Setting | Purpose |
 | --- | --- |
-| `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | Database connection; original localhost/root defaults remain for compatibility |
+| `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | Database connection; development defaults remain for compatibility; production rejects root/empty credentials |
 | `DB_SOCKET` | Optional MySQL socket |
 | `APP_BASE_PATH` | Empty at the domain root; `/mae` when installed under that subdirectory |
-| `COOKIE_SECURE` | Set to `1` on HTTPS, including behind a trusted TLS proxy |
+| `COOKIE_SECURE` | Production requires `1`; configure only the actual proxy in `TRUSTED_PROXIES` |
+| `APP_ENV`, `APP_ORIGIN`, `APP_KEY` | Transport policy; production requires a canonical HTTPS origin and private key |
+| `RUNTIME_DIR`, `MEDIA_LOCK_DIR` | Private session/work storage and optional separate media locks outside the website |
 
-Run `php scripts/setup.php --seed`. Create an administrator as above using `php scripts/create-admin.php`. Start the development server with:
+Run `composer install --no-dev --no-scripts --no-plugins`, then `php scripts/setup.php --seed`. Create an administrator as above using `php scripts/create-admin.php`, then enroll its authenticator. Start the development server with:
 
 ```sh
 php -S 127.0.0.1:8080 -t . scripts/dev-router.php
@@ -51,7 +54,7 @@ php -S 127.0.0.1:8080 -t . scripts/dev-router.php
 
 `npm run dev` is an optional preview command; no Node packages or frontend build are required. `PORT` chooses its port.
 
-For Apache, enable `mod_rewrite` and `AllowOverride All` for this directory so `.htaccess` protects internal code and configuration. For other web servers, deny dotfiles, `config.*`, `app/`, `database/`, `scripts/`, and `tests/`, and disable PHP execution under `assets/uploads/`. Give the PHP account write access to `assets/uploads/`. The local development router implements corresponding path restrictions.
+For native Apache, adapt the immutable directory/handler rules in `docker/apache.conf` to your checkout path. Deny internal paths and enforce the upload image allowlist in server-owned configuration with `AllowOverride None`; a writable upload-directory .htaccess is only a fallback for older setups. For other web servers, deny dotfiles, `config.*`, `app/`, `database/`, `scripts/`, and `tests/`, and disable PHP execution under `assets/uploads/`. Give the PHP account write access to `assets/uploads/`. The local development router implements corresponding path restrictions.
 
 For native deployments, schedule `php /absolute/path/to/e-com-website/scripts/expire-orders.php` every minute. Shop/order pages also apply expiry before displaying an invoice. Order times are stored and displayed in UTC.
 
@@ -63,7 +66,7 @@ Back up the database and test the upgrade on a copy first. Use a maintenance win
 2. Run `php scripts/migrate.php`, or `docker compose exec web php scripts/migrate.php` for an imported legacy database.
 3. Verify existing accounts and orders in the upgraded copy before applying the same process to the live installation.
 
-The migration preserves IDs and records, widens password columns, hashes existing plaintext passwords, normalizes email addresses, adds unique account/order-line indexes, converts tables to InnoDB/utf8mb4, and adds product/customer availability and invoice expiry. Version 1 repair databases upgrade directly to version 2 without repeating the legacy data transforms. Already-hashed passwords are not hashed again. Original passwords continue to work after migration; newly set passwords must meet current limits. The application refuses to use a legacy schema until migration completes.
+The migration preserves IDs and records, widens password columns, hashes existing plaintext passwords, normalizes email addresses, adds unique account/order-line indexes, converts tables to InnoDB/utf8mb4, and adds product/customer availability and invoice expiry. Version 1 and 2 databases upgrade to version 3 without repeating completed legacy transforms. Version 3 adds authentication versions, activity/erasure metadata, encrypted MFA state, expiring recovery codes, shared rate limits, and security audit/erasure tables. Existing sessions must sign in again; administrators must enroll an authenticator. Already-hashed passwords are not hashed again. Original passwords continue to work after migration; newly set passwords must meet the demo/admin policies. The application refuses to use a schema older than version 3 until migration completes.
 
 Duplicate normalized emails or duplicate `(OrderID, pcode)` lines stop migration before table changes; resolve them explicitly in the backup copy instead of silently choosing an account or merging historical prices. An interrupted migration can be rerun. Column additions use explicit table-copy rebuilds for compatibility with older MariaDB instant-column behavior, so allow time and disk space for the maintenance operation. Previously orphaned detail rows are counted and retained for manual review. Fresh databases include foreign keys; upgraded databases retain their existing key types/relationships, with application transactions performing cleanup. The old unused `Cart` table, if present, is retained and unused.
 
@@ -89,7 +92,7 @@ Order transactions retry a bounded number of deadlocks or lock timeouts. File-up
 
 Mutations require POST and CSRF tokens and enforce role/ownership independently of navigation. Password fields never contain stored passwords; blank edits keep the existing hash. Validation errors retain non-password fields and leave passwords blank.
 
-Image uploads validate content, dimensions, and size, use randomized filenames with trusted extensions, and update the product reference.
+Image uploads decode/re-encode bounded JPEG/PNG/WebP content, remove metadata, use randomized filenames, enforce storage quotas, and update the product reference transactionally. External product image URLs and uploaded SVG are rejected. Docker enforces immutable no-execution rules outside the upload volume.
 
 ## Regression suite
 
@@ -111,7 +114,7 @@ GitHub Actions runs the same suite with MariaDB on pushes and pull requests.
 
 ## Interface checks
 
-All pages use compatible, pinned Bootstrap/Bootswatch 5.3.3 assets. The catalog uses a responsive grid, complete product images, visible filter context, and an open-invoice summary. Product previews, forms, order tables, and management pages share the MAE visual treatment.
+All pages use bundled Bootstrap 5.3.9 and Bootswatch Lux 5.3.8 assets, with locally hosted Montserrat and Roboto Slab fonts. The catalog uses a responsive grid, complete product images, visible filter context, and an open-invoice summary. Product previews, forms, order tables, and management pages share the MAE visual treatment.
 
 For manual verification, check the landing page, catalog, profile, active orders/history, and admin management pages at 320px, 390px, 768px, and desktop widths. Confirm that mobile navigation exposes search, descriptions and preview dialogs work with a keyboard, and wide management tables scroll within their own container. Use the HTTP/database suite for actual form submissions and permissions; rendered page snapshots validate layout only.
 
@@ -135,3 +138,21 @@ node --test tests/currency.test.cjs
 ```
 
 Node is needed only for the JavaScript tests, not to serve the PHP application. The HTTP suite also checks the rates endpoint, outage behavior, exact IDR price metadata, and subdirectory URLs.
+
+## Portfolio security
+
+[Security setup, deployment, backups, and incident procedures](docs/security.md) explain the implementation and production release checks. The application remains a fictional-data portfolio in production: no real email delivery, shipping details, payments, or reused customer passwords.
+
+Registration uses only a demo alias, a fictional address ending in .test, and a disposable password. A private one-time recovery code replaces email recovery. Customers can revoke sessions and erase their account; newer erasures can be reapplied after restoring an older snapshot. Retention commands default to dry-run; the production maintenance service applies the documented 30-day inactivity policy hourly.
+
+The separate compose.production.yaml provides HTTPS through Caddy, file-mounted secrets, non-root immutable app code, database-role separation, and isolated session/backup/job storage. Configure the host, secrets, and protected off-host backup destination before publishing. Local compose.yaml remains a loopback development setup.
+
+Additional checks:
+
+```sh
+php tests/security-unit.php
+python3 tests/security.py
+composer audit --locked
+```
+
+The Docker deployment suite uses disposable data and a local TLS authority: `python3 tests/production.py`. It builds the actual image and verifies Apache handlers, TLS/proxy trust, restricted grants, MFA, encrypted backups, and an isolated restore. It requires a Linux Docker environment; CI also runs it. The existing currency and order behavior is covered by regression tests.

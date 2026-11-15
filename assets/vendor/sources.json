@@ -1,0 +1,89 @@
+{
+  "bootstrap": "Bootstrap JS 5.3.9 and Bootswatch Lux 5.3.8, MIT licensed; unused Google font import removed.",
+  "fonts": "Montserrat (OFL) and Roboto Slab (Apache 2.0), from Google Fonts, downloaded 2026-11-15. Original licenses included.",
+  "files": [
+    {
+      "path": "assets/vendor/BOOTSWATCH-LICENSE.txt",
+      "sha256": "af0520cd61f5231a8e158cbbeb79c837f8d65d0b288c14fae8d648f9e6204ce1"
+    },
+    {
+      "path": "assets/vendor/bootstrap.bundle.min.js",
+      "sha256": "ba6170d422f7d715ae9ae061f879fb73752f3eeec8108fb75069dcbc0bac30c2"
+    },
+    {
+      "path": "assets/vendor/BOOTSTRAP-LICENSE.txt",
+      "sha256": "bc0cd18d94c028f1c0b62ec9fdaddcb9921c1e07c29cf52dc7df8cca9daf2488"
+    },
+    {
+      "path": "assets/vendor/bootstrap.min.css",
+      "sha256": "943f2845dc6101458ff2d9ab85c6810fc4ff3c60c4dee8287972136f1905f7f3"
+    },
+    {
+      "path": "assets/vendor/fonts/font-5.woff2",
+      "sha256": "1dbd6cd2d04f8b494745edb00a5d680647a941ef0a6a92b5dda2f88484e14ea5"
+    },
+    {
+      "path": "assets/vendor/fonts/font-0.woff2",
+      "sha256": "0f7f5f2fbb4eae126790fe6f01659ab3ee0806e8038a941908e893020569f51a"
+    },
+    {
+      "path": "assets/vendor/fonts/font-7.woff2",
+      "sha256": "427f27a4cad5ee713707e1e39456a2cff8d52eb140be1fcc283431b1b419fcef"
+    },
+    {
+      "path": "assets/vendor/fonts/robotoslab-LICENSE.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "assets/vendor/fonts/font-10.woff2",
+      "sha256": "8ed24f94c25ecf99a50b806ef6ca02988cf8c1d443228ddbd6a8ac99c99df81e"
+    },
+    {
+      "path": "assets/vendor/fonts/font-2.woff2",
+      "sha256": "26b2403f995ed65fb49037a6498c074d3ec3c36031a69fc368c4c2180e2c01fa"
+    },
+    {
+      "path": "assets/vendor/fonts/font-9.woff2",
+      "sha256": "6774cefbdbcbb36f47b8a3f0aa51bfbeec1d198e3ddfbaf27f1ecdfad251f43c"
+    },
+    {
+      "path": "assets/vendor/fonts/fonts.css",
+      "sha256": "c22fd9ccb0752d8df92bca2ec0245db5729cbcdc7b2f4aa5e00d7085de099415"
+    },
+    {
+      "path": "assets/vendor/fonts/font-11.woff2",
+      "sha256": "50cf7d32c18e1001749b51f1565ef745bc0687b0297b2b13465ed577cc20a8ff"
+    },
+    {
+      "path": "assets/vendor/fonts/font-3.woff2",
+      "sha256": "54d9a78b7ff60b689ad9f3017ffac8547b5d871afec733f6c1c3ae36577ee504"
+    },
+    {
+      "path": "assets/vendor/fonts/font-6.woff2",
+      "sha256": "94ab3efd7d4242d5a6034b2ac62c60ece4ac41d408f74b3b993b897b797e11ed"
+    },
+    {
+      "path": "assets/vendor/fonts/font-4.woff2",
+      "sha256": "06b16db7a969135d48d38c49183be7fb88d4452e2a3011957c7851941f4e4879"
+    },
+    {
+      "path": "assets/vendor/fonts/font-8.woff2",
+      "sha256": "1f4245774a6de07cf40e8d9f6b152b994793d1746c333b4434728f6ae1f8a712"
+    },
+    {
+      "path": "assets/vendor/fonts/font-1.woff2",
+      "sha256": "a187b077090fe8ae3fd2d7496aabbeae604819c718a282e0afc92df72b450766"
+    },
+    {
+      "path": "assets/vendor/fonts/montserrat-OFL.txt",
+      "sha256": "8b7141c03fa4f8d44e6345d5d4931709290f0f67875e452e95ac1fd3a027802e"
+    }
+  ],
+  "sources": [
+    "https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/lux/bootstrap.min.css",
+    "https://cdn.jsdelivr.net/npm/bootstrap@5.3.9/dist/js/bootstrap.bundle.min.js",
+    "https://raw.githubusercontent.com/thomaspark/bootswatch/v5.3.8/LICENSE",
+    "https://raw.githubusercontent.com/twbs/bootstrap/v5.3.9/LICENSE",
+    "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto+Slab:wght@400;700&display=swap"
+  ]
+}

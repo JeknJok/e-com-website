@@ -3,11 +3,16 @@ declare(strict_types=1);
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 define('MAE_SETUP', true);
 require dirname(__DIR__) . '/app/bootstrap.php';
+require dirname(__DIR__) . '/app/schema-security.php';
 
 $schema = setting('DB_NAME', 'NealleDB');
 $marker = row('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?', [$schema, 'MaeSchema']);
-if ($marker && row('SELECT version FROM MaeSchema WHERE version = 2')) {
+if ($marker && row('SELECT version FROM MaeSchema WHERE version = 3')) {
     echo "Database is already current.\n";
+    exit;
+}
+if ($marker && row('SELECT version FROM MaeSchema WHERE version = 2')) {
+    upgrade_security_schema();
     exit;
 }
 // Explicit COPY rebuilds avoid instant-add metadata inconsistencies on older MariaDB.
@@ -17,6 +22,7 @@ if ($marker && row('SELECT version FROM MaeSchema WHERE version = 1')) {
         execute('ALTER TABLE Customers ADD is_active TINYINT(1) NOT NULL DEFAULT 1, ALGORITHM=COPY');
     }
     execute('INSERT INTO MaeSchema (version) VALUES (2)');
+    upgrade_security_schema();
     echo "Migration complete; customer availability added and order history retained.\n";
     exit;
 }
@@ -74,3 +80,5 @@ expire_orders();
 $orphans = row('SELECT COUNT(*) AS count FROM OrderDetails d LEFT JOIN Orders o ON o.OrderID = d.OrderID WHERE o.OrderID IS NULL');
 echo "Migration complete; existing passwords are hashed and records retained.\n";
 echo 'Pre-existing orphan detail rows retained for manual review: ' . $orphans['count'] . ".\n";
+
+upgrade_security_schema();

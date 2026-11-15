@@ -2,3 +2,15 @@
 /.env
 /assets/uploads/product_*
 /tests/.runtime/
+
+.env.*
+!.env.example
+/vendor/
+*.maebackup
+*.sql.gz
+*.key
+
+**/__pycache__/
+*.pyc
+/secrets/
+/backups/

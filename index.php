@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $loginKind = isset($_POST['submit_admin']) ? 'admin' : 'customer';
     $loginEmail = input('email');
     if (login_account($loginKind, $loginEmail, input('pass'))) {
-        redirect(url($loginKind === 'admin' ? 'admin/dashboard.php' : 'admin/catalog.php'));
+        redirect(url($loginKind === 'admin' ? 'admin/mfa.php' : 'admin/catalog.php'));
     }
     $message = '<div class="alert alert-danger" role="alert">Invalid email or password.</div>';
     if ($loginKind === 'admin') { $msg_admin = $message; } else { $msg_customer = $message; }
@@ -104,6 +104,7 @@ $products = rows('SELECT pcode, pname, pcategory, pprice, pimage, pdesc FROM
                     <h2 class="section-heading text-uppercase" id="login-heading">Login</h2>
                     <p class="section-subheading">Log in or <a href="<?= e(url('admin/Customers_insert.php')) ?>">register now</a> and start shopping.</p>
                 </div>
+                <?php portfolio_notice(); ?>
                 <?php if ($customer || $admin): ?>
                 <div class="signed-in-note"><p>You are already signed in.</p><a class="btn btn-primary" href="<?= e(url($admin ? 'admin/dashboard.php' : 'admin/catalog.php')) ?>"><?= $admin ? 'Go to dashboard' : 'Continue shopping' ?></a></div>
                 <?php endif ?>
@@ -114,10 +115,11 @@ $products = rows('SELECT pcode, pname, pcategory, pprice, pimage, pdesc FROM
                         <form action="<?= e(url('index.php')) ?>#login" method="post">
                             <?= csrf_field() ?>
                             <div class="mb-3"><label class="form-label" for="customer-email">Email</label><input type="email" class="form-control" id="customer-email" name="email" value="<?= e($loginKind === 'customer' ? $loginEmail : '') ?>" autocomplete="username" maxlength="254" required></div>
-                            <div class="mb-4"><label class="form-label" for="customer-password">Password</label><input type="password" class="form-control" id="customer-password" name="pass" autocomplete="current-password" maxlength="72" required></div>
+                            <div class="mb-4"><label class="form-label" for="customer-password">Password</label><input type="password" class="form-control" id="customer-password" name="pass" autocomplete="current-password" maxlength="256" required></div>
                             <?= $msg_customer ?>
                             <button type="submit" name="submit_customer" class="btn btn-primary">Log in</button>
                         </form>
+                        <p class="mt-3"><a href="<?= e(url('admin/recover.php')) ?>">Recover a demo account</a></p>
                         <p class="register-link">New to MAE? <a href="<?= e(url('admin/Customers_insert.php')) ?>">Create an account</a></p>
                     </div>
                     <div class="login-panel admin-login">
@@ -126,7 +128,7 @@ $products = rows('SELECT pcode, pname, pcategory, pprice, pimage, pdesc FROM
                         <form action="<?= e(url('index.php')) ?>#login" method="post">
                             <?= csrf_field() ?>
                             <div class="mb-3"><label class="form-label" for="admin-email">Email</label><input type="email" class="form-control" id="admin-email" name="email" value="<?= e($loginKind === 'admin' ? $loginEmail : '') ?>" autocomplete="username" maxlength="254" required></div>
-                            <div class="mb-4"><label class="form-label" for="admin-password">Password</label><input type="password" class="form-control" id="admin-password" name="pass" autocomplete="current-password" maxlength="72" required></div>
+                            <div class="mb-4"><label class="form-label" for="admin-password">Password</label><input type="password" class="form-control" id="admin-password" name="pass" autocomplete="current-password" maxlength="256" required></div>
                             <?= $msg_admin ?>
                             <button type="submit" name="submit_admin" class="btn btn-secondary">Admin login</button>
                         </form>

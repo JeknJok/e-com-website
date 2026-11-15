@@ -1,0 +1,20 @@
+{
+  "name": "mae/portfolio-demo",
+  "description": "MAE portfolio ecommerce demo",
+  "type": "project",
+  "license": "proprietary",
+  "require": {
+    "ext-ctype": "*",
+    "ext-fileinfo": "*",
+    "ext-gd": "*",
+    "ext-mbstring": "*",
+    "ext-mysqli": "*",
+    "ext-sodium": "*",
+    "php": "^8.2",
+    "spomky-labs/otphp": "^11.5.1"
+  },
+  "config": {
+    "allow-plugins": {},
+    "sort-packages": true
+  }
+}

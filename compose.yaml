@@ -1,6 +1,6 @@
 services:
   db:
-    image: mariadb:11.4
+    image: mariadb:11.4@sha256:5e73baf8179b29f115101bb102763a47a017361f3e9792daccba6646c3ab1532
     environment:
       MARIADB_DATABASE: NealleDB
       MARIADB_USER: mae
@@ -13,11 +13,15 @@ services:
       interval: 3s
       timeout: 3s
       retries: 30
+    networks: [backend]
+    mem_limit: 512m
+    pids_limit: 128
   web:
     build: .
     ports:
-      - "127.0.0.1:8080:80"
+      - "127.0.0.1:8080:8080"
     environment:
+      APP_ENV: development
       DB_HOST: db
       DB_NAME: NealleDB
       DB_USER: mae
@@ -27,10 +31,20 @@ services:
         condition: service_healthy
     volumes:
       - uploads:/var/www/html/assets/uploads
+      - runtime:/var/lib/mae
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 512m
+    pids_limit: 64
+    networks: [backend, outbound]
   expiry:
     build: .
     command: ["sh", "-c", "while true; do php scripts/expire-orders.php; sleep 60; done"]
     environment:
+      APP_ENV: development
       DB_HOST: db
       DB_NAME: NealleDB
       DB_USER: mae
@@ -38,6 +52,19 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+    pids_limit: 32
+    networks: [backend]
+networks:
+  backend:
+    internal: true
+  outbound:
 volumes:
   database:
   uploads:
+  runtime:

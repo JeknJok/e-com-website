@@ -1,7 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/app/bootstrap.php';
 require_once dirname(__DIR__) . '/app/accounts.php';
-require_admin();
+require_fresh_admin();
 $id = positive_int(input('id', $_GET));
 $admin = row('SELECT id, firstname, lastname, email, username, mobile FROM users_tb WHERE id = ?', [$id]);
 if (!$admin) { throw new HttpError(404, 'Administrator not found.'); }

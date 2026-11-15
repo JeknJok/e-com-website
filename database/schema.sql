@@ -9,7 +9,12 @@ CREATE TABLE Customers (
     CPassword VARCHAR(255) NOT NULL,
     CEmail VARCHAR(254) NOT NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
+    auth_version INT UNSIGNED NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_seen_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    erased_at DATETIME NULL,
     reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY customers_retention (erased_at, last_seen_at),
     UNIQUE KEY customers_email (CEmail)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -21,6 +26,11 @@ CREATE TABLE users_tb (
     username VARCHAR(100) NOT NULL DEFAULT '',
     pass VARCHAR(255) NOT NULL,
     mobile VARCHAR(30) NOT NULL DEFAULT '',
+    auth_version INT UNSIGNED NOT NULL DEFAULT 1,
+    mfa_secret TEXT NULL,
+    mfa_last_counter BIGINT NOT NULL DEFAULT -1,
+    mfa_pending_secret TEXT NULL,
+    mfa_pending_expires DATETIME NULL,
     reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY users_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -65,5 +75,38 @@ CREATE TABLE OrderDetails (
     CHECK (pprice > 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS RateLimits (
+    bucket_key CHAR(64) CHARACTER SET ascii PRIMARY KEY,
+    hits INT UNSIGNED NOT NULL,
+    expires_at BIGINT UNSIGNED NOT NULL,
+    KEY limiter_expiry (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS RecoveryCodes (
+    token_hash CHAR(64) CHARACTER SET ascii PRIMARY KEY,
+    account_kind VARCHAR(8) NOT NULL,
+    account_id INT UNSIGNED NOT NULL,
+    expires_at DATETIME NOT NULL,
+    KEY recovery_account (account_kind, account_id),
+    KEY recovery_expiry (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS SecurityEvents (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    occurred_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    event_name VARCHAR(64) NOT NULL,
+    actor_kind VARCHAR(16) NOT NULL,
+    actor_id INT UNSIGNED NULL,
+    target_id INT UNSIGNED NULL,
+    outcome VARCHAR(8) NOT NULL,
+    request_id CHAR(24) CHARACTER SET ascii NOT NULL,
+    KEY events_time (occurred_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ErasureLedger (
+    customer_id INT UNSIGNED PRIMARY KEY,
+    erased_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE MaeSchema (version INT PRIMARY KEY);
-INSERT INTO MaeSchema (version) VALUES (2);
+INSERT INTO MaeSchema (version) VALUES (3);

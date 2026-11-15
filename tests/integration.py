@@ -5,6 +5,9 @@ Requires PHP 8.2+ (mysqli, mbstring, fileinfo), Python 3, and a MySQL/MariaDB
 account with CREATE/DROP DATABASE permission. Connection uses DB_* environment.
 """
 import base64
+import hashlib
+import hmac
+import struct
 import concurrent.futures
 import contextlib
 import http.cookiejar
@@ -18,6 +21,7 @@ import shutil
 import socket
 import subprocess
 import time
+import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -30,6 +34,13 @@ ENV = os.environ.copy()
 ENV['DB_NAME'] = 'mae_test_' + secrets.token_hex(6)
 ENV['APP_BASE_PATH'] = ''
 ENV['COOKIE_SECURE'] = '0'
+ENV['APP_ENV'] = 'development'
+ENV['APP_KEY'] = base64.b64encode(secrets.token_bytes(32)).decode()
+ENV['RATE_REGISTER_IP'] = '1000'
+ENV['RATE_LOGIN_IP'] = '1000'
+PRIVATE_DIRECTORY = Path(tempfile.mkdtemp(prefix='mae-test-private-'))
+ENV['RUNTIME_DIR'] = str(PRIVATE_DIRECTORY)
+ADMIN_CODES = {}
 FX_DIRECTORY = ROOT / 'tests/.runtime' / ('fx_' + secrets.token_hex(6))
 FX_DIRECTORY.mkdir(parents=True, exist_ok=True)
 ENV['FX_CACHE_DIR'] = str(FX_DIRECTORY)
@@ -45,8 +56,8 @@ def check(condition, label):
     CHECKS += 1
 
 
-def cli(script, env=None, success=True):
-    result = subprocess.run([PHP, str(ROOT / script)], env=env or ENV,
+def cli(script, env=None, success=True, args=None):
+    result = subprocess.run([PHP, str(ROOT / script), *(args or [])], env=env or ENV,
                             cwd=ROOT, capture_output=True, text=True)
     if success and result.returncode:
         raise AssertionError(f'{script}: {result.stdout}\n{result.stderr}')
@@ -70,6 +81,26 @@ echo json_encode($r ? $r->fetch_all(MYSQLI_ASSOC) : [], JSON_THROW_ON_ERROR);
     if result.returncode:
         raise AssertionError(result.stderr)
     return json.loads(result.stdout)
+
+
+
+def otp(secret):
+    key = base64.b32decode(secret + '=' * ((8 - len(secret) % 8) % 8))
+    digest = hmac.new(key, struct.pack('>Q', int(time.time()) // 30), hashlib.sha1).digest()
+    offset = digest[-1] & 15
+    return f'{(struct.unpack(">I", digest[offset:offset + 4])[0] & 0x7fffffff) % 1000000:06}'
+
+
+def enroll_admin(email, password, env=None):
+    env = dict(env or ENV, ADMIN_PASSWORD=password)
+    started = cli('scripts/admin-mfa.php', env, args=['--email=' + email, '--begin'])
+    secret = re.search(r'Authenticator setup key: ([A-Z2-7]+)', started.stdout).group(1)
+    result = cli('scripts/admin-mfa.php', dict(env, MFA_CODE=otp(secret)), args=['--email=' + email, '--confirm'])
+    codes = re.findall(r'^[a-f0-9]{40}$', result.stdout, re.M)
+    check(len(codes) == 8, 'Operator enrollment returns private single-use recovery codes')
+    ADMIN_CODES[(env['DB_NAME'], email)] = codes
+    ADMIN_CODES[email] = codes
+    return secret
 
 
 def create_database(name):
@@ -119,6 +150,12 @@ class Client:
         response = self.post('index.php', {'email': email, 'pass': password,
                                          'submit_admin' if admin else 'submit_customer': '1'})
         check(response[0] == 303, 'Valid credentials log in and redirect')
+        if admin:
+            check('admin/mfa.php' in response[2].get('Location', ''), 'Administrator password alone leads only to MFA')
+            check(self.get('admin/dashboard.php')[0] == 303, 'Pending MFA grants no administrator access')
+            self.get('admin/mfa.php')
+            codes = ADMIN_CODES.get((ENV['DB_NAME'], email), ADMIN_CODES.get(email))
+            check(self.post('admin/mfa.php', {'code': codes.pop()})[0] == 303, 'Unused MFA recovery code completes administrator sign-in')
         destination = 'admin/dashboard.php' if admin else 'admin/catalog.php'
         check(self.get(destination)[0] == 200, 'Authenticated destination loads')
 
@@ -202,15 +239,14 @@ def server(env):
 
 
 def customer_data(email, name='Customer'):
-    return {'CustomerName': name, 'ContactName': name, 'CAddress': "12 O'Reilly Road", 'City': 'Vancouver',
-            'PostalCode': 'V0V0V0', 'Country': 'Canada', 'CEmail': email, 'CPassword': 'Customer-pass-42'}
+    return {'ContactName': name, 'CEmail': email, 'CPassword': 'Customer-pass-42'}
 
 
 def register(base, email, name='Customer'):
     client = Client(base)
     check(client.get('admin/Customers_insert.php')[0] == 200, 'Registration form loads')
     response = client.post('admin/Customers_insert.php', customer_data(email, name))
-    check(response[0] == 303 and '/admin/catalog.php' in response[2]['Location'], 'Registration creates a logged-in customer')
+    check(response[0] == 303 and '/admin/account-security.php' in response[2]['Location'], 'Registration creates a logged-in customer and shows recovery instructions')
     check(client.get('admin/catalog.php')[0] == 200, 'New customer can shop immediately')
     return client, int(sql('SELECT CustomerID FROM Customers WHERE CEmail = ?', [email])[0]['CustomerID'])
 
@@ -358,7 +394,7 @@ def run_http(base, admin_email, admin_password):
     values.update(City='Burnaby', ContactName='Alice updated', CPassword='')
     check(alice.post('admin/Customers_profile.php', values)[0] == 303, 'Profile update succeeds')
     profile_row = sql('SELECT City, ContactName, CPassword FROM Customers WHERE CustomerID = ?', [aid])[0]
-    check(profile_row['City'] == 'Burnaby' and profile_row['CPassword'] == original_hash, 'City changes and blank password is preserved')
+    check(profile_row['City'] == '' and profile_row['CPassword'] == original_hash, 'Address overposting is ignored and blank password is preserved')
     alice.get('admin/catalog.php')
     check(alice.post('admin/Customers_profile.php', values, csrf=False)[0] == 403, 'Profile update requires CSRF')
     duplicate = Client(base)
@@ -366,12 +402,12 @@ def run_http(base, admin_email, admin_password):
     code, body, _ = duplicate.post('admin/Customers_insert.php', customer_data('ALICE@example.test'))
     check(code == 409, 'Duplicate email is rejected')
     inputs = {field.get('name'): field.get('value') for field in Document(body).inputs}
-    check(inputs['CEmail'] == 'ALICE@example.test' and inputs['City'] == 'Vancouver' and
+    check(inputs['CEmail'] == 'ALICE@example.test' and inputs['ContactName'] == 'Customer' and
           inputs['CPassword'] == '' and 'id="form-error"' in body, 'Failed registration preserves non-password input and shows an accessible error')
-    invalid_profile = dict(values, CEmail='bob@example.test', City='Retain this city', CPassword='Another-pass-42')
+    invalid_profile = dict(values, CEmail='bob@example.test', ContactName='Retain this alias', CPassword='Another-pass-42', current_password='Customer-pass-42')
     code, body, _ = alice.post('admin/Customers_profile.php', invalid_profile)
     inputs = {field.get('name'): field.get('value') for field in Document(body).inputs}
-    check(code == 409 and inputs['City'] == 'Retain this city' and inputs['CPassword'] == '', 'Failed profile edit retains typed values without echoing a password')
+    check(code == 409 and inputs['ContactName'] == 'Retain this alias' and inputs['CPassword'] == '', 'Failed profile edit retains typed values without echoing a password')
     check(sql('SELECT CPassword FROM Customers WHERE CustomerID = ?', [aid])[0]['CPassword'] == original_hash,
           'Duplicate email rolls back profile password changes')
 
@@ -501,7 +537,7 @@ def run_http(base, admin_email, admin_password):
     check('&lt;script&gt;' in admin.get('admin/products_list.php')[1], 'Product output is escaped')
     bad_product = dict(product_data, pimage='javascript:alert(1)')
     check(admin.post(f'admin/products_update.php?pcode={new_pid}', bad_product)[0] == 422, 'Unsafe image URL is rejected')
-    png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/R5sAAAAASUVORK5CYII=')
+    png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP438DwHwAGgAJ/EEwb4QAAAABJRU5ErkJggg==')
     check(admin.upload(new_pid, b'<?php echo "not an image";', 'image/jpeg', 'test.jpg')[0] == 422, 'Spoofed image content is rejected')
     check(admin.upload(new_pid, png, csrf=False)[0] == 403, 'Upload requires CSRF')
     check(admin.upload(new_pid, png)[0] == 303, 'Valid image upload succeeds')
@@ -519,10 +555,10 @@ def run_http(base, admin_email, admin_password):
     values = customer_data('alice@example.test', 'Alice admin-edited')
     values.update(City='Richmond', CPassword='', is_active='1')
     check(admin.post(f'admin/Customers_update.php?CustomerID={aid}', values)[0] == 303, 'Admin customer editing works')
-    check(sql('SELECT City FROM Customers WHERE CustomerID = ?', [aid])[0]['City'] == 'Richmond', 'Admin customer edit saves city')
+    check(sql('SELECT City FROM Customers WHERE CustomerID = ?', [aid])[0]['City'] == '', 'Administrator updates do not collect an address')
     admin.get('admin/user_insert.php')
     new_admin = {'firstName': 'Second', 'lastName': "O'Reilly", 'email': 'second-admin@example.test',
-                 'pass': 'Second-pass-42', 'username': '', 'mobile': ''}
+                 'pass': 'Second-passphrase-42', 'username': '', 'mobile': ''}
     check(admin.post('admin/user_insert.php', new_admin)[0] == 303, 'Admin creation supplies fields required by legacy schema')
     second_id = int(sql('SELECT id FROM users_tb WHERE email = ?', [new_admin['email']])[0]['id'])
     hash_before = sql('SELECT pass FROM users_tb WHERE id = ?', [second_id])[0]['pass']
@@ -612,6 +648,7 @@ def run_migration():
     check(len(sql('SELECT OrderID FROM OrderDetails', database=name)) == 2, 'Migration does not silently delete old detail records')
     check('already current' in cli('scripts/migrate.php', env).stdout and
           sql('SELECT CPassword FROM Customers', database=name)[0]['CPassword'] == customer['CPassword'], 'Migration is idempotent and does not hash a hash')
+    enroll_admin('legacy-admin@example.test', 'old-admin', env)
     with server(env) as base:
         client = Client(base)
         client.login('old@example.test', 'old-pass-42')
@@ -645,7 +682,7 @@ def run_migration():
     cli('scripts/migrate.php', dict(ENV, DB_NAME=version_one))
     upgraded = sql('SELECT CPassword, is_active FROM Customers', database=version_one)[0]
     check(upgraded['CPassword'] == customer['CPassword'] and upgraded['is_active'] == 1 and
-          sql('SELECT version FROM MaeSchema WHERE version = 2', database=version_one),
+          sql('SELECT version FROM MaeSchema WHERE version = 3', database=version_one),
           'Version 1 upgrade adds account availability without changing password hashes')
     check('already current' in cli('scripts/migrate.php', dict(ENV, DB_NAME=version_one)).stdout,
           'Version 1 upgrade remains idempotent')
@@ -653,6 +690,8 @@ def run_migration():
 
 def main():
     for path in ROOT.rglob('*.php'):
+        if 'vendor' in path.relative_to(ROOT).parts:
+            continue
         result = subprocess.run([PHP, '-l', str(path)], capture_output=True, text=True)
         check(result.returncode == 0, 'PHP syntax: ' + str(path.relative_to(ROOT)))
     create_database(ENV['DB_NAME'])
@@ -661,6 +700,7 @@ def main():
     run_catalog_seed()
     admin_email, admin_password = 'admin@example.test', secrets.token_urlsafe(20)
     cli('scripts/create-admin.php', dict(ENV, ADMIN_EMAIL=admin_email, ADMIN_PASSWORD=admin_password))
+    enroll_admin(admin_email, admin_password)
     with server(ENV) as base:
         run_http(base, admin_email, admin_password)
     with server(dict(ENV, APP_BASE_PATH='/mae')) as base:
@@ -679,6 +719,7 @@ if __name__ == '__main__':
         main()
     finally:
         shutil.rmtree(FX_DIRECTORY, ignore_errors=True)
+        shutil.rmtree(PRIVATE_DIRECTORY, ignore_errors=True)
         for path in UPLOADS:
             path.unlink(missing_ok=True)
         for name in reversed(DATABASES):

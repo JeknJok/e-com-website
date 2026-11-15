@@ -4,8 +4,8 @@ declare(strict_types=1);
 function page_start(string $title, string $role = 'public', array $context = []): void
 {
     $links = $role === 'admin'
-        ? ['Dashboard' => 'admin/dashboard.php', 'Users' => 'admin/user_list.php', 'Shop As' => 'admin/Shop_admin.php', 'Products' => 'admin/products_list.php', 'Orders' => 'admin/Orders_list.php', 'Customers' => 'admin/Customers_list.php']
-        : ($role === 'customer' ? ['Shop' => 'admin/catalog.php', 'Profile' => 'admin/Customers_profile.php', 'Active Orders' => 'admin/Customers_orders.php', 'Order History' => 'admin/Customers_history.php'] : ['Home / Login' => 'index.php#login', 'Register' => 'admin/Customers_insert.php']);
+        ? ['Dashboard' => 'admin/dashboard.php', 'Users' => 'admin/user_list.php', 'Shop As' => 'admin/Shop_admin.php', 'Products' => 'admin/products_list.php', 'Orders' => 'admin/Orders_list.php', 'Customers' => 'admin/Customers_list.php', 'Account security' => 'admin/security.php']
+        : ($role === 'customer' ? ['Shop' => 'admin/catalog.php', 'Profile' => 'admin/Customers_profile.php', 'Account security' => 'admin/account-security.php', 'Active Orders' => 'admin/Customers_orders.php', 'Order History' => 'admin/Customers_history.php'] : ['Home / Login' => 'index.php#login', 'Register' => 'admin/Customers_insert.php']);
     $currentPath = (string)parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
     ?><!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -35,13 +35,11 @@ function page_start(string $title, string $role = 'public', array $context = [])
 function theme_head(): void
 {
     ?><link rel="icon" href="<?= e(url('assets/favicon.ico')) ?>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css">
+<link rel="stylesheet" href="<?= e(url('assets/vendor/fonts/fonts.css')) ?>">
+<link rel="stylesheet" href="<?= e(url('assets/vendor/bootstrap.min.css')) ?>">
 <link rel="stylesheet" href="<?= e(url('css/app.css')) ?>">
 <meta name="mae-exchange-rates" content="<?= e(url('api/exchange-rates.php')) ?>">
-<script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script defer src="<?= e(url('assets/vendor/bootstrap.bundle.min.js')) ?>"></script>
 <script defer src="<?= e(url('js/app.js')) ?>"></script>
 <script defer src="<?= e(url('js/currency.js')) ?>"></script>
 <?php
@@ -90,7 +88,7 @@ function submitted_value(string $name, mixed $fallback = ''): string
 function field(string $name, string $label, mixed $value = '', string $type = 'text', int $maxlength = 100, bool $required = true): void
 {
     $value = $type === 'password' ? '' : submitted_value($name, $value);
-    ?><div class="mb-3"><label class="form-label" for="<?= e($name) ?>"><?= e($label) ?><?= $required ? '' : ' <span class="text-muted">(optional)</span>' ?></label><input class="form-control" type="<?= e($type) ?>" id="<?= e($name) ?>" name="<?= e($name) ?>" value="<?= e($value) ?>" <?= $type === 'number' ? 'min="1" step="1"' : '' ?> maxlength="<?= $maxlength ?>" <?= $required ? 'required' : '' ?> <?= $type === 'password' ? 'autocomplete="new-password"' : '' ?>></div><?php
+    ?><div class="mb-3"><label class="form-label" for="<?= e($name) ?>"><?= e($label) ?><?= $required ? '' : ' <span class="text-muted">(optional)</span>' ?></label><input class="form-control" type="<?= e($type) ?>" id="<?= e($name) ?>" name="<?= e($name) ?>" value="<?= e($value) ?>" <?= $type === 'number' ? 'min="1" step="1"' : '' ?> maxlength="<?= $maxlength ?>" <?= $required ? 'required' : '' ?> <?= $type === 'password' ? ($name === 'current_password' ? 'autocomplete="current-password"' : 'autocomplete="new-password"') : '' ?>></div><?php
 }
 
 function action_form(string $path, array $values, string $label, string $style = 'secondary'): void
@@ -115,4 +113,9 @@ function render_orders(array $orders, bool $asAdmin = false): void
 <?php foreach ($orders as $order): ?><tr><th scope="row">#<?= e($order['OrderID']) ?></th><td><?= e($order['OrderDate']) ?></td><?php if ($asAdmin): ?><td><?= e($order['ContactName']) ?> (#<?= e($order['CustomerID']) ?>)</td><?php endif ?><td><?= order_status($order['OrderStatus']) ?></td><td><?= $order['OrderStatus'] === 'INVOICE' ? e($order['InvoiceExpiresAt']) : '—' ?></td><td class="order-total"><?= price_html($order['total']) ?></td><td><a class="btn btn-sm btn-secondary" href="<?= e(url('admin/OrderDetails_list.php', ['OrderID' => $order['OrderID']])) ?>">Details</a>
 <?php if ($order['OrderStatus'] === 'INVOICE'): if ($asAdmin): action_form('check_paid.php', ['OrderID' => $order['OrderID']], 'Mark paid', 'success'); endif; action_form('Customers_cancelOrder.php', ['OrderID' => $order['OrderID']], 'Cancel order', 'outline-danger'); elseif ($asAdmin && $order['OrderStatus'] === 'PAID'): action_form('uncheck_paid.php', ['OrderID' => $order['OrderID']], 'Reopen invoice'); endif ?>
 </td></tr><?php endforeach ?></tbody></table></div><?php
+}
+
+function portfolio_notice(): void
+{
+    ?><aside class="demo-notice" aria-label="Portfolio demo privacy notice"><strong>Portfolio demo — use made-up details only.</strong><p>Do not enter your real name, email, address, payment information, or a password you use elsewhere. Use a fictional email such as <span class="text-nowrap">explorer@example.test</span> and a demo-only password. No real purchases or emails are sent. Demo accounts are temporary and may be erased after 30 days of inactivity.</p></aside><?php
 }

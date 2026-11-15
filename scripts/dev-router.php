@@ -11,7 +11,7 @@ if ($base !== '' && ($path === $base || str_starts_with($path, $base . '/'))) {
 } elseif ($base !== '') {
     http_response_code(404); exit;
 }
-if (preg_match('#(^|/)(\.|app(?:/|$)|database(?:/|$)|scripts(?:/|$)|tests(?:/|$)|config\.)#', $path) || str_contains($path, "\0")) {
+if (preg_match('#(^|/)(\.|app(?:/|$)|database(?:/|$)|scripts(?:/|$)|tests(?:/|$)|vendor(?:/|$)|docs(?:/|$)|docker(?:/|$)|config\.|composer\.|package(?:-lock)?\.json)#', $path) || str_contains($path, "\0")) {
     http_response_code(404); exit;
 }
 $root = dirname(__DIR__);
@@ -21,9 +21,10 @@ if (!$file || !str_starts_with($file, $root . DIRECTORY_SEPARATOR) || !is_file($
     http_response_code(404); echo 'Not found'; exit;
 }
 // Legacy uploads must never execute, even if a previous version accepted PHP files.
-if (str_starts_with($file, $root . '/assets/uploads/') && preg_match('/\.(?:php[0-9]*|phtml|phar)$/i', $file)) {
+if (str_starts_with($file, $root . '/assets/uploads/') && !preg_match('/^[A-Za-z0-9_-]+\.(?:jpe?g|png|webp)$/iD', basename($file))) {
     http_response_code(404); exit;
 }
+if (preg_match('/\.(?:sql|ini|log|ya?ml|toml|sh|key|maebackup)$/iD', $file)) { http_response_code(404); exit; }
 if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
     require $file;
 } else {

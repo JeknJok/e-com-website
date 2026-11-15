@@ -90,7 +90,9 @@ function cancel_order(int $orderId, ?int $customerId): void
         }
         // Retain both the order and its items as linked cancellation history.
         execute("UPDATE Orders SET OrderStatus = 'CANCELLED', InvoiceExpiresAt = NULL WHERE OrderID = ?", [$orderId]);
+        audit_event('order.cancelled', $orderId);
         unset($_SESSION['active_orders'][(int)$order['CustomerID']]);
+        audit_event('order.cancelled', $orderId);
     }, 3);
 }
 

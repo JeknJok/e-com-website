@@ -9,7 +9,8 @@ handle_form(function () use ($id): void {
     flash('Your profile has been updated.');
     redirect(url('admin/Customers_profile.php'));
 });
-$customer = row('SELECT CustomerName, ContactName, CAddress, CEmail, Country, City, PostalCode FROM Customers WHERE CustomerID = ?', [$id]);
-page_start('Update personal information', 'customer');
+$customer = row('SELECT ContactName, CEmail FROM Customers WHERE CustomerID = ?', [$id]);
+page_start('Update demo account', 'customer');
+portfolio_notice();
 customer_form($customer, true);
 page_end();

@@ -1,6 +1,6 @@
 <?php
 require_once dirname(__DIR__) . '/app/bootstrap.php';
-$actor = require_admin();
+$actor = require_fresh_admin();
 $id = positive_int(input('id', $_GET));
 $admin = row('SELECT id, firstname, email FROM users_tb WHERE id = ?', [$id]);
 if (!$admin) { throw new HttpError(404, 'Administrator not found.'); }
@@ -11,6 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($id === (int)$actor['id'] || count($admins) <= 1) {
             throw new HttpError(409, 'You cannot delete your own account or the last administrator.');
         }
+        audit_event('admin.deleted', $id);
+        execute("DELETE FROM RecoveryCodes WHERE account_kind = 'admin' AND account_id = ?", [$id]);
         execute('DELETE FROM users_tb WHERE id = ?', [$id]);
     });
     flash('Administrator deleted.');

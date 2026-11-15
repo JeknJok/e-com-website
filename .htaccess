@@ -1,7 +1,7 @@
 Options -Indexes
 RewriteEngine On
-RewriteRule ^(?:app|database|scripts|tests|\.git)(?:/|$) - [F,L,NC]
+RewriteRule ^(?:app|database|scripts|tests|vendor|docs|docker|\.git)(?:/|$) - [F,L,NC]
 RewriteRule ^admin/shop_admin\.php$ admin/Shop_admin.php [L]
-<FilesMatch "^(?:config\.|\.)">
+<FilesMatch "^(?:config\.|\.|composer\.|package(?:-lock)?\.json)|\.(?:sql|ini|log|ya?ml|toml|sh|key|maebackup)$">
     Require all denied
 </FilesMatch>

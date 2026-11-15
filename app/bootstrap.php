@@ -9,6 +9,12 @@ function setting(string $name, string $default = ''): string
 {
     global $config;
     $value = getenv($name);
+    $file = getenv($name . '_FILE');
+    if ($file !== false && $file !== '') {
+        if ($value !== false && $value !== '') { throw new RuntimeException('Configure a value or its _FILE source, not both.'); }
+        if (!is_file($file) || !is_readable($file) || filesize($file) > 16384) { throw new RuntimeException('A configured secret file is unavailable.'); }
+        return rtrim((string)file_get_contents($file), "\r\n");
+    }
     return $value !== false ? $value : (string)($config[$name] ?? $default);
 }
 
@@ -38,7 +44,7 @@ set_exception_handler(function (Throwable $error): void {
     }
     $status = $error instanceof HttpError ? $error->status : 500;
     if ($status === 500) {
-        error_log((string)$error);
+        error_log(json_encode(['application_error' => get_class($error), 'request_id' => request_id()]));
     }
     http_response_code($status);
     $message = $error instanceof HttpError ? $error->getMessage() : 'The request could not be completed. Please try again or contact the site administrator.';
@@ -51,23 +57,33 @@ set_exception_handler(function (Throwable $error): void {
     }
 });
 
+require_once __DIR__ . '/security.php';
+require_once __DIR__ . '/auth.php';
+validate_security_configuration();
+
 if (PHP_SAPI !== 'cli') {
+    security_headers();
+    if (production()) {
+        $authority = parse_url(canonical_origin(), PHP_URL_HOST) . (parse_url(canonical_origin(), PHP_URL_PORT) ? ':' . parse_url(canonical_origin(), PHP_URL_PORT) : '');
+        if (!request_https() || strtolower((string)($_SERVER['HTTP_HOST'] ?? '')) !== strtolower($authority)) {
+            throw new HttpError(400, 'Use the configured HTTPS address for this portfolio demo.');
+        }
+    }
+    $sessionDirectory = private_directory() . '/sessions';
+    if (!is_dir($sessionDirectory) && !@mkdir($sessionDirectory, 0700) && !is_dir($sessionDirectory)) { throw new RuntimeException('Session storage is unavailable.'); }
+    session_save_path($sessionDirectory);
+    ini_set('session.gc_maxlifetime', '43200');
     ini_set('session.use_strict_mode', '1');
     ini_set('session.use_only_cookies', '1');
     session_name('mae_session');
     session_set_cookie_params([
         'lifetime' => 0,
         'path' => rtrim(setting('APP_BASE_PATH'), '/') . '/',
-        'secure' => setting('COOKIE_SECURE') === '1' || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+        'secure' => setting('COOKIE_SECURE') === '1' || request_https(),
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
     session_start();
-    header('X-Content-Type-Options: nosniff');
-    header('Referrer-Policy: strict-origin-when-cross-origin');
-    header('X-Frame-Options: DENY');
-    header('Cache-Control: no-store');
-    header('Content-Type: text/html; charset=utf-8');
 }
 
 function redirect(string $location): never
@@ -115,14 +131,6 @@ function email_value(string $name): string
     return $email;
 }
 
-function new_password(string $password): string
-{
-    if (strlen($password) < 8 || strlen($password) > 72 || str_contains($password, "\0")) {
-        throw new HttpError(422, 'Use a password between 8 and 72 bytes long.');
-    }
-    return password_hash($password, PASSWORD_DEFAULT);
-}
-
 function csrf_token(): string
 {
     return $_SESSION['csrf'] ??= bin2hex(random_bytes(32));
@@ -142,6 +150,8 @@ function require_post(): void
     if (!hash_equals(csrf_token(), input('csrf'))) {
         throw new HttpError(403, 'The form expired. Reload the page and try again.');
     }
+    $actor = isset($_SESSION['AdminID']) ? 'admin:' . $_SESSION['AdminID'] : (isset($_SESSION['CustomerID']) ? 'customer:' . $_SESSION['CustomerID'] : '');
+    rate_limit('mutation', $actor);
 }
 
 function db(): mysqli
@@ -154,7 +164,7 @@ function db(): mysqli
         $connection->query("SET time_zone = '+00:00'");
         if (!defined('MAE_SETUP')) {
             try {
-                $ready = $connection->query('SELECT version FROM MaeSchema WHERE version = 2')->fetch_assoc();
+                $ready = $connection->query('SELECT version FROM MaeSchema WHERE version = 3')->fetch_assoc();
             } catch (mysqli_sql_exception $error) {
                 $ready = null;
             }
@@ -211,62 +221,6 @@ function transaction(callable $callback, int $retries = 0): mixed
     }
 }
 
-function current_admin(): ?array
-{
-    return isset($_SESSION['AdminID']) ? row('SELECT id, firstname, lastname, email FROM users_tb WHERE id = ?', [$_SESSION['AdminID']]) : null;
-}
-
-function current_customer(): ?array
-{
-    if (!isset($_SESSION['CustomerID'])) { return null; }
-    $customer = row('SELECT CustomerID, ContactName FROM Customers WHERE CustomerID = ? AND is_active = 1', [$_SESSION['CustomerID']]);
-    if (!$customer) {
-        unset($_SESSION['CustomerID'], $_SESSION['ContactName'], $_SESSION['active_orders']);
-    }
-    return $customer;
-}
-
-function require_admin(): array
-{
-    if ($admin = current_admin()) {
-        return $admin;
-    }
-    if (current_customer()) {
-        throw new HttpError(403, 'Administrator access is required.');
-    }
-    redirect(url('index.php') . '#login');
-}
-
-function require_customer(): array
-{
-    if ($customer = current_customer()) {
-        return $customer;
-    }
-    if (current_admin()) {
-        throw new HttpError(403, 'Choose a customer from Shop As to place an order.');
-    }
-    redirect(url('index.php') . '#login');
-}
-
-function login_account(string $kind, string $email, string $password): bool
-{
-    $accounts = $kind === 'admin'
-        ? rows('SELECT id AS account_id, firstname AS display_name, pass AS password_hash FROM users_tb WHERE email = ?', [strtolower(trim($email))])
-        : rows('SELECT CustomerID AS account_id, ContactName AS display_name, CPassword AS password_hash FROM Customers WHERE CEmail = ? AND is_active = 1', [strtolower(trim($email))]);
-    if (count($accounts) !== 1 || $password === '' || strlen($password) > 72 || !password_verify($password, $accounts[0]['password_hash'])) {
-        return false;
-    }
-    $account = $accounts[0];
-    if (password_needs_rehash($account['password_hash'], PASSWORD_DEFAULT)) {
-        $hash = password_hash($password, PASSWORD_DEFAULT);
-        execute($kind === 'admin' ? 'UPDATE users_tb SET pass = ? WHERE id = ?' : 'UPDATE Customers SET CPassword = ? WHERE CustomerID = ?', [$hash, $account['account_id']]);
-    }
-    session_regenerate_id(true);
-    $_SESSION = [$kind === 'admin' ? 'AdminID' : 'CustomerID' => (int)$account['account_id'], 'ContactName' => $account['display_name']];
-    csrf_token();
-    return true;
-}
-
 function flash(string $message): void
 {
     $_SESSION['flash'] = $message;
@@ -285,14 +239,7 @@ function price_html(mixed $value): string
 
 function image_url(string $image): string
 {
-    if (filter_var($image, FILTER_VALIDATE_URL) && in_array(strtolower((string)parse_url($image, PHP_URL_SCHEME)), ['http', 'https'], true)) {
-        return $image;
-    }
-    $image = preg_replace('#^(\.\./|\./)+#', '', $image);
-    if (str_starts_with($image, 'assets/') && !str_contains($image, '..') && !str_contains($image, '\\')) {
-        return url($image);
-    }
-    return url('assets/img/logo-mae.png');
+    return url(local_image_path($image) ?? 'assets/img/logo-mae.png');
 }
 
 require_once __DIR__ . '/orders.php';

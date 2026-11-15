@@ -1,6 +1,6 @@
 <?php
 require_once dirname(__DIR__) . '/app/bootstrap.php';
-require_admin();
+require_fresh_admin();
 $id = positive_int(input('CustomerID', $_GET));
 $customer = row('SELECT CustomerID, ContactName, is_active FROM Customers WHERE CustomerID = ?', [$id]);
 if (!$customer) { throw new HttpError(404, 'Customer not found.'); }
@@ -17,8 +17,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             execute('DELETE FROM Customers WHERE CustomerID = ?', [$id]);
         } else {
-            execute('UPDATE Customers SET is_active = 0 WHERE CustomerID = ?', [$id]);
+            execute('UPDATE Customers SET is_active = 0, auth_version = auth_version + 1 WHERE CustomerID = ?', [$id]);
         }
+        execute("DELETE FROM RecoveryCodes WHERE account_kind = 'customer' AND account_id = ?", [$id]);
+        audit_event($operation === 'delete' ? 'account.deleted' : 'account.deactivated', $id);
     });
     unset($_SESSION['active_orders'][$id]);
     flash($operation === 'delete' ? 'Customer without order history deleted.' : 'Customer deactivated. All order history has been preserved.');

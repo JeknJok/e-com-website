@@ -1,13 +1,18 @@
-name: PHP and database regressions
-on: [push, pull_request]
+name: MAE security and regression checks
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "17 8 * * 1"
 permissions:
   contents: read
 jobs:
   regression:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     services:
       database:
-        image: mariadb:11.4
+        image: mariadb:11.4@sha256:5e73baf8179b29f115101bb102763a47a017361f3e9792daccba6646c3ab1532
         env:
           MARIADB_ROOT_PASSWORD: local-test-only-password
           MARIADB_ROOT_HOST: "%"
@@ -17,19 +22,64 @@ jobs:
           --health-cmd="healthcheck.sh --connect --innodb_initialized"
           --health-interval=5s --health-timeout=5s --health-retries=30
     steps:
-      - uses: actions/checkout@v4
-      - name: Install PHP runtime
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Install PHP and locked dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y php-cli php-mysql php-mbstring
-      - name: Run regression suite
+          sudo apt-get install -y php-cli php-mysql php-mbstring php-gd composer
+          composer validate --strict
+          composer install --no-dev --no-interaction --no-scripts --no-plugins
+          composer audit --locked --no-interaction
+      - name: Run HTTP, migration, security, and restore regressions
         env:
           DB_HOST: 127.0.0.1
           DB_PORT: "3306"
           DB_USER: root
           DB_PASSWORD: local-test-only-password
-        run: python3 tests/integration.py
-      - name: Run currency service and conversion tests
+        run: |
+          python3 tests/integration.py
+          python3 tests/security.py
+          php tests/security-unit.php
+      - name: Verify currency service and display conversion
         run: |
           php tests/currency.php
           node --test tests/currency.test.cjs
+  source-security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Install pinned scanners
+        run: |
+          python3 tests/install-security-tools.py --directory "$RUNNER_TEMP/mae-tools" --tools gitleaks
+          python3 -m venv "$RUNNER_TEMP/semgrep"
+          "$RUNNER_TEMP/semgrep/bin/pip" install --quiet semgrep==1.185.0
+      - name: Scan PHP request boundaries
+        run: |
+          "$RUNNER_TEMP/semgrep/bin/semgrep" scan --config .semgrep.yml --error --metrics off --disable-version-check --exclude vendor --exclude tests .
+      - name: Scan repository history for exposed secrets
+        run: |
+          "$RUNNER_TEMP/mae-tools/gitleaks" git --redact --no-banner .
+  production:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Exercise the real Apache, HTTPS proxy, secrets, and database grants
+        run: python3 tests/production.py --keep
+      - name: Scan the built image
+        run: |
+          python3 tests/install-security-tools.py --directory "$RUNNER_TEMP/mae-tools" --tools trivy
+          image=$(python3 -c 'import json; print(json.load(open("tests/.runtime/production-state.json"))["image_id"])')
+          "$RUNNER_TEMP/mae-tools/trivy" image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 "$image"
+      - name: Passive browser-facing baseline
+        run: |
+          mkdir -p "$RUNNER_TEMP/zap"
+          chmod 777 "$RUNNER_TEMP/zap"
+          cp tests/zap-baseline.conf "$RUNNER_TEMP/zap/rules.conf"
+          docker run --rm --network host -v "$RUNNER_TEMP/zap:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:2.17.0 zap-baseline.py -t https://localhost -c rules.conf -I -m 1
+      - name: Remove disposable deployment
+        if: always()
+        run: python3 tests/production.py --stop
